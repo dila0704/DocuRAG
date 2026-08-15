@@ -1,0 +1,57 @@
+[
+  {
+    "chunk_id": 0,
+    "text": "Talep Eden: Dila Alpay\nTarih: 2026-08-12\nDepartman: Yazılım Geliştirme\nKonu: Ek Monitör Talebi\n\nGeliştirmekte olduğum yapay zeka destekli doküman",
+    "token_count": 60
+  },
+  {
+    "chunk_id": 1,
+    "text": "olduğum yapay zeka destekli doküman analiz modülünün test işlemleri sırasında, log takibi ve kod yazımını eşzamanlı yürütebilmek amacıyla tarafıma 1",
+    "token_count": 60
+  },
+  {
+    "chunk_id": 2,
+    "text": "amacıyla tarafıma 1 adet 27 inç monitör tahsis edilmesini rica ederim.\n\n---",
+    "token_count": 30
+  },
+  {
+    "chunk_id": 3,
+    "text": "tahsis edilmesini rica ederim.\n\n---\n\nTalep Eden: Ahmet Yilmaz\nTarih: 2026-08-13\nDepartman: Insan Kaynaklari\nKonu: Yeni Laptop Talebi",
+    "token_count": 55
+  },
+  {
+    "chunk_id": 4,
+    "text": "Kaynaklari\nKonu: Yeni Laptop Talebi\n\nMevcut laptopumun performans sorunlari nedeniyle is verimliligimi etkilemektedir. Tarafima yeni bir laptop tahsis edilmesini rica ederim.",
+    "token_count": 61
+  },
+  {
+    "chunk_id": 5,
+    "text": "yeni bir laptop tahsis edilmesini rica ederim.\n\n---\n\nTalep Eden: Zeynep Kaya\nTarih: 2026-08-14\nDepartman: None\nKonu: Klavye Degisimi",
+    "token_count": 55
+  },
+  {
+    "chunk_id": 6,
+    "text": "None\nKonu: Klavye Degisimi\n\nKlavyemdeki birkac tus arizali. Yeni bir klavye talep ediyorum.\n\n---",
+    "token_count": 39
+  },
+  {
+    "chunk_id": 7,
+    "text": "Yeni bir klavye talep ediyorum.\n\n---\n\nTalep Eden: Mehmet Demir\nTarih: 2026-08-15\nDepartman: Muhasebe\nKonu: Yazici Talebi",
+    "token_count": 50
+  },
+  {
+    "chunk_id": 8,
+    "text": "Muhasebe\nKonu: Yazici Talebi\n\nDepartmanimizda ortak kullanilan yazici arizalandi. Yeni bir yazici temin edilmesini rica ederim.\n\n---",
+    "token_count": 47
+  },
+  {
+    "chunk_id": 9,
+    "text": "yazici temin edilmesini rica ederim.\n\n---\n\nTalep Eden: Elif Sahin\nTarih: 2026-08-16\nDepartman: Pazarlama\nKonu: Ek Ekran Talebi",
+    "token_count": 53
+  },
+  {
+    "chunk_id": 10,
+    "text": "Pazarlama\nKonu: Ek Ekran Talebi\n\nTasarim islerinde verimliligi artirmak icin ikinci bir ekrana ihtiyacim var.",
+    "token_count": 42
+  }
+]
