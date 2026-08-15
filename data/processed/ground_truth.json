@@ -1,0 +1,37 @@
+{
+  "test_talep_01.png": {
+    "talep_eden": "Dila Alpay",
+    "tarih": "2026-08-12",
+    "departman": "Yazılım Geliştirme",
+    "konu": "Ek Monitör Talebi",
+    "aciklama": "Geliştirmekte olduğum yapay zeka destekli doküman analiz modülünün test işlemleri sırasında, log takibi ve kod yazımını eşzamanlı yürütebilmek amacıyla tarafıma 1 adet 27 inç monitör tahsis edilmesini rica ederim."
+  },
+  "test_talep_02.png": {
+    "talep_eden": "Ahmet Yilmaz",
+    "tarih": "2026-08-13",
+    "departman": "Insan Kaynaklari",
+    "konu": "Yeni Laptop Talebi",
+    "aciklama": "Mevcut laptopumun performans sorunlari nedeniyle is verimliligimi etkilemektedir. Tarafima yeni bir laptop tahsis edilmesini rica ederim."
+  },
+  "test_talep_03.png": {
+    "talep_eden": "Zeynep Kaya",
+    "tarih": "2026-08-14",
+    "departman": null,
+    "konu": "Klavye Degisimi",
+    "aciklama": "Klavyemdeki birkac tus arizali. Yeni bir klavye talep ediyorum."
+  },
+  "test_talep_04.png": {
+    "talep_eden": "Mehmet Demir",
+    "tarih": "2026-08-15",
+    "departman": "Muhasebe",
+    "konu": "Yazici Talebi",
+    "aciklama": "Departmanimizda ortak kullanilan yazici arizalandi. Yeni bir yazici temin edilmesini rica ederim."
+  },
+  "test_talep_05.png": {
+    "talep_eden": "Elif Sahin",
+    "tarih": "2026-08-16",
+    "departman": "Pazarlama",
+    "konu": "Ek Ekran Talebi",
+    "aciklama": "Tasarim islerinde verimliligi artirmak icin ikinci bir ekrana ihtiyacim var."
+  }
+}

@@ -1,0 +1,19 @@
+# config/settings.yaml
+project:
+  name: "EnVision AI Search Module"
+  version: "1.0"
+
+llm_settings:
+  active_mode: "cloud" 
+  
+  cloud_model:
+    provider: "anthropic" 
+    model_name: "claude-sonnet-5"
+    
+  local_model:
+    provider: "huggingface"
+    model_name: "meta-llama/Meta-Llama-3-8B-Instruct"
+
+vector_db:
+  type: "faiss"
+  path: "./data/processed/faiss_index"

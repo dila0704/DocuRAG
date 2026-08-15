@@ -1,0 +1,16 @@
+# Çevresel Değişkenler (Gizli API Anahtarları)
+.env
+
+# Sanal Ortam (Çok yer kaplar, herkes kendi kurmalıdır)
+venv/
+env/
+
+# Python Önbellek Dosyaları
+__pycache__/
+*.pyc
+
+# Jupyter Notebook Kontrol Dosyaları
+.ipynb_checkpoints/
+
+# Editor / araç yerel ayarları
+.claude/
