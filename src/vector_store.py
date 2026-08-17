@@ -50,14 +50,26 @@ def build_index(embedded_chunks: list[dict]) -> tuple[faiss.Index, list[dict]]:
 
 
 def save_index(index: faiss.Index, metadata: list[dict], path: str) -> None:
+    """Index'i ve metadata'yi diske yazar.
+
+    faiss.write_index() Windows'ta yol ASCII olmayan karakterler icerdiginde
+    (ornegin kullanici adinda Turkce harf) native fopen cagrisinda basarisiz
+    olabiliyor. Bunun onune gecmek icin index once bellekte serialize edilip
+    (faiss.serialize_index), diske Python'un kendi (Unicode-guvenli) dosya
+    I/O'su ile yaziliyor.
+    """
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    faiss.write_index(index, path + ".faiss")
+    index_bytes = faiss.serialize_index(index)
+    with open(path + ".faiss", "wb") as f:
+        f.write(index_bytes.tobytes())
     with open(path + ".meta.json", "w", encoding="utf-8") as f:
         json.dump(metadata, f, ensure_ascii=False, indent=2)
 
 
 def load_index(path: str) -> tuple[faiss.Index, list[dict]]:
-    index = faiss.read_index(path + ".faiss")
+    with open(path + ".faiss", "rb") as f:
+        index_bytes = np.frombuffer(f.read(), dtype="uint8")
+    index = faiss.deserialize_index(index_bytes)
     with open(path + ".meta.json", encoding="utf-8") as f:
         metadata = json.load(f)
     return index, metadata

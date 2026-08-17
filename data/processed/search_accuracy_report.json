@@ -1,0 +1,114 @@
+{
+  "config": {
+    "chunk_size": 150,
+    "chunk_overlap": 20,
+    "top_k": 3,
+    "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2"
+  },
+  "queries": [
+    {
+      "sorgu": "Ek monitor talebi olan kim?",
+      "tip": "dogal",
+      "beklenen_belge": "test_talep_01.png",
+      "top1_belge": "test_talep_05.png",
+      "top1_skor": 0.5871,
+      "hit@1": false,
+      "hit@3": true,
+      "rank": 3
+    },
+    {
+      "sorgu": "Log takibini kod yazimiyla eszamanli yurutmek isteyen kisi kim?",
+      "tip": "anlamsal",
+      "beklenen_belge": "test_talep_01.png",
+      "top1_belge": "test_talep_01.png",
+      "top1_skor": 0.5872,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Laptop talebinde bulunan kim?",
+      "tip": "dogal",
+      "beklenen_belge": "test_talep_02.png",
+      "top1_belge": "test_talep_02.png",
+      "top1_skor": 0.5488,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Cihazinin performansi dustugu icin verimliligi etkilenen calisan kim?",
+      "tip": "anlamsal",
+      "beklenen_belge": "test_talep_02.png",
+      "top1_belge": "test_talep_02.png",
+      "top1_skor": 0.5584,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Klavye degisikligi isteyen kim?",
+      "tip": "dogal",
+      "beklenen_belge": "test_talep_03.png",
+      "top1_belge": "test_talep_03.png",
+      "top1_skor": 0.5096,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Yazi yazarken zorlanan, donanimi arizali olan kisi kim?",
+      "tip": "anlamsal",
+      "beklenen_belge": "test_talep_03.png",
+      "top1_belge": "test_talep_03.png",
+      "top1_skor": 0.4681,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Yazici arizasi bildiren kim?",
+      "tip": "dogal",
+      "beklenen_belge": "test_talep_04.png",
+      "top1_belge": "test_talep_04.png",
+      "top1_skor": 0.5076,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Muhasebe departmaninda ortak kullanilan bir cihaz bozulmus, kim talep acti?",
+      "tip": "anlamsal",
+      "beklenen_belge": "test_talep_04.png",
+      "top1_belge": "test_talep_01.png",
+      "top1_skor": 0.4246,
+      "hit@1": false,
+      "hit@3": true,
+      "rank": 3
+    },
+    {
+      "sorgu": "Ek ekran talebi olan kim?",
+      "tip": "dogal",
+      "beklenen_belge": "test_talep_05.png",
+      "top1_belge": "test_talep_05.png",
+      "top1_skor": 0.5994,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Tasarim verimliligini artirmak icin ikinci ekrana ihtiyac duyan kisi kim?",
+      "tip": "anlamsal",
+      "beklenen_belge": "test_talep_05.png",
+      "top1_belge": "test_talep_05.png",
+      "top1_skor": 0.7114,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    }
+  ],
+  "hit_at_1": 0.8,
+  "hit_at_3": 1.0,
+  "mrr": 0.8666666666666666,
+  "n_queries": 10
+}
