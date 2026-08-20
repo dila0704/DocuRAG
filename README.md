@@ -11,10 +11,10 @@ Belge görsellerinden (fatura, sözleşme, dilekçe vb.) çıkarılan metinler �
 - **Embedding Üretimi** — Çok dilli (Türkçe destekli) `sentence-transformers` modeliyle chunk'lar vektörleştiriliyor.
 - **Vektör Veritabanı** — Embedding'ler FAISS'e (`IndexFlatIP`, kosinüs benzerliği) kaydediliyor; doğal dil sorgularıyla en yakın sonuçları (Top-K) döndüren semantik arama fonksiyonu yazıldı.
 - **Doğruluk Testi** — Gerçek OCR çıktıları ve ground-truth veri seti üzerinden uçtan uca arama doğruluğu ölçüldü (bkz. `data/processed/search_accuracy_report.json`).
+- **Otomatik Belge Sınıflandırma** — Belge metni bir LLM'e (Claude) verilerek önceden tanımlanmış bir sınıfa (fatura/sözleşme/dilekçe/talep formu vb.) atanıyor ve serbest metinli etiketler çıkarılıyor (bkz. `src/classifier.py`, `data/processed/classification_report.json`).
 
 ## Devam eden / planlanan çalışmalar
 
-- NLP tabanlı belge sınıflandırma (fatura/sözleşme/dilekçe vb. otomatik etiketleme)
 - `config.yaml` üzerinden tek ayarla cloud/local model geçişi (Factory yapısı)
 - Tüm modüllerin tek bir uçtan uca pipeline'da birleştirilmesi
 - Basit bir chat/arama arayüzü (Streamlit/Gradio)
@@ -27,7 +27,7 @@ data/
   raw_docs/       # Örnek, gizlilik içermeyen test belgeleri
   processed/      # Üretilen embedding, FAISS index ve test raporları
 notebooks/        # Adım adım geliştirme/test defterleri
-src/              # text_splitter, embedder, vector_store modülleri
+src/              # text_splitter, embedder, vector_store, classifier modülleri
 ```
 
 ## Kurulum

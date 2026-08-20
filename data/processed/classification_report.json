@@ -1,0 +1,57 @@
+{
+  "test_talep_01.png": {
+    "sinif": "talep formu",
+    "guven": 0.95,
+    "etiketler": [
+      "ek monitör talebi",
+      "yazılım geliştirme",
+      "donanım talebi",
+      "iş talebi"
+    ],
+    "gerekce": "Belge, bir çalışanın departmanına ekipman tahsisi için yaptığı resmi talebi içermektedir."
+  },
+  "test_talep_02.png": {
+    "sinif": "talep formu",
+    "guven": 0.9,
+    "etiketler": [
+      "laptop talebi",
+      "insan kaynaklari",
+      "ekipman talebi",
+      "iş verimliliği"
+    ],
+    "gerekce": "Belge, bir çalışanın yeni ekipman talebini içeren yapılandırılmış bir talep formu niteliğindedir."
+  },
+  "test_talep_03.png": {
+    "sinif": "talep formu",
+    "guven": 0.9,
+    "etiketler": [
+      "klavye değişimi",
+      "arıza bildirimi",
+      "ekipman talebi",
+      "talep eden: zeynep kaya"
+    ],
+    "gerekce": "Belge, bir çalışanın arızalı ekipman için yeni talep oluşturduğu bir talep formu niteliğindedir."
+  },
+  "test_talep_04.png": {
+    "sinif": "talep formu",
+    "guven": 0.9,
+    "etiketler": [
+      "yazıcı talebi",
+      "muhasebe departmanı",
+      "arıza bildirimi",
+      "ekipman talebi"
+    ],
+    "gerekce": "Belge, bir departman adına ekipman ihtiyacını bildiren ve talep içeren resmi bir yazı niteliğindedir."
+  },
+  "test_talep_05.png": {
+    "sinif": "talep formu",
+    "guven": 0.9,
+    "etiketler": [
+      "ek ekran talebi",
+      "pazarlama departmani",
+      "donanım talebi",
+      "verimlilik"
+    ],
+    "gerekce": "Belge, bir çalışanın departman ve tarih bilgisiyle birlikte ekipman talebini ilettiği resmi bir talep formu niteliğindedir."
+  }
+}
