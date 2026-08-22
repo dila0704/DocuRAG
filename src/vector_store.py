@@ -49,6 +49,43 @@ def build_index(embedded_chunks: list[dict]) -> tuple[faiss.Index, list[dict]]:
     return index, metadata
 
 
+def save_metadata(metadata: list[dict], path: str) -> None:
+    """Sadece metadata (".meta.json") dosyasini yazar, FAISS index'ine dokunmaz.
+
+    Insan incelemesi sonrasi bir belgenin sinif/etiket/human_review bilgisi
+    duzeltildiginde vektorler degismedigi icin index'i (ve dolayisiyla
+    ".faiss" dosyasini) yeniden kurmaya gerek yoktur; sadece bu fonksiyonla
+    metadata guncellenir. update_metadata_by_source_doc() ile birlikte
+    kullanilir.
+    """
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path + ".meta.json", "w", encoding="utf-8") as f:
+        json.dump(metadata, f, ensure_ascii=False, indent=2)
+
+
+def update_metadata_by_source_doc(metadata: list[dict], source_doc: str, updates: dict) -> list[dict]:
+    """Belirli bir source_doc'a ait tum chunk'larin metadata'sini gunceller.
+
+    Insan incelemesi sonrasi bir belgenin kategorisi/etiketleri/human_review
+    durumu duzeltildiginde kullanilir: belge OCR/embedding tamamlaninca
+    zaten indekslenip aranabilir durumdadir (bkz. classifier.attach_labels_to_chunks),
+    inceleme sonrasi bu fonksiyonla sadece ilgili alanlar guncellenir;
+    vektorler ve index yeniden kurulmaz.
+
+    Args:
+        metadata: load_index() veya build_index() ciktisindaki metadata listesi.
+        source_doc: guncellenecek belgenin dosya adi (chunk'lardaki "source_doc" alani).
+        updates: metadata'ya uygulanacak alan guncellemeleri (orn. {"siniflar": [...], "human_review": False}).
+
+    Returns:
+        Guncellenmis yeni bir metadata listesi (girdi degistirilmez).
+    """
+    return [
+        {**m, **updates} if m.get("source_doc") == source_doc else m
+        for m in metadata
+    ]
+
+
 def save_index(index: faiss.Index, metadata: list[dict], path: str) -> None:
     """Index'i ve metadata'yi diske yazar.
 
@@ -62,8 +99,7 @@ def save_index(index: faiss.Index, metadata: list[dict], path: str) -> None:
     index_bytes = faiss.serialize_index(index)
     with open(path + ".faiss", "wb") as f:
         f.write(index_bytes.tobytes())
-    with open(path + ".meta.json", "w", encoding="utf-8") as f:
-        json.dump(metadata, f, ensure_ascii=False, indent=2)
+    save_metadata(metadata, path)
 
 
 def load_index(path: str) -> tuple[faiss.Index, list[dict]]:

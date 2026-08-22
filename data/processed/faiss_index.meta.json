@@ -5,7 +5,18 @@
     "token_count": 125,
     "source_doc": "test_talep_01.png",
     "konu": "Ek Monitör Talebi",
-    "talep_eden": "Dila Alpay"
+    "talep_eden": "Dila Alpay",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.92,
+    "etiketler": [
+      "ek monitör talebi",
+      "donanım talebi",
+      "yazılım geliştirme",
+      "iç yazışma"
+    ],
+    "human_review": false
   },
   {
     "chunk_id": 1,
@@ -13,7 +24,18 @@
     "token_count": 88,
     "source_doc": "test_talep_02.png",
     "konu": "Yeni Laptop Talebi",
-    "talep_eden": "Ahmet Yilmaz"
+    "talep_eden": "Ahmet Yilmaz",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "laptop talebi",
+      "insan kaynaklari",
+      "ekipman talebi",
+      "is verimliligi"
+    ],
+    "human_review": false
   },
   {
     "chunk_id": 2,
@@ -21,7 +43,22 @@
     "token_count": 64,
     "source_doc": "test_talep_03.png",
     "konu": "Klavye Degisimi",
-    "talep_eden": "Zeynep Kaya"
+    "talep_eden": "Zeynep Kaya",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.85,
+    "etiketler": [
+      "klavye degisimi",
+      "ekipman talebi",
+      "ariza bildirimi",
+      "it talebi",
+      "acil"
+    ],
+    "human_review": false,
+    "incelendi": true,
+    "inceleyen": "Dila Alpay",
+    "inceleme_tarihi": "2026-08-22"
   },
   {
     "chunk_id": 3,
@@ -29,7 +66,18 @@
     "token_count": 70,
     "source_doc": "test_talep_04.png",
     "konu": "Yazici Talebi",
-    "talep_eden": "Mehmet Demir"
+    "talep_eden": "Mehmet Demir",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "yazıcı talebi",
+      "muhasebe departmanı",
+      "arıza bildirimi",
+      "ekipman temini"
+    ],
+    "human_review": false
   },
   {
     "chunk_id": 4,
@@ -37,6 +85,17 @@
     "token_count": 66,
     "source_doc": "test_talep_05.png",
     "konu": "Ek Ekran Talebi",
-    "talep_eden": "Elif Sahin"
+    "talep_eden": "Elif Sahin",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "ek ekran talebi",
+      "pazarlama departmani",
+      "donanım talebi",
+      "verimlilik"
+    ],
+    "human_review": false
   }
 ]

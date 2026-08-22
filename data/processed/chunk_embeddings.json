@@ -6,6 +6,17 @@
     "source_doc": "test_talep_01.png",
     "konu": "Ek Monitör Talebi",
     "talep_eden": "Dila Alpay",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.92,
+    "etiketler": [
+      "ek monitör talebi",
+      "donanım talebi",
+      "yazılım geliştirme",
+      "iç yazışma"
+    ],
+    "human_review": false,
     "embedding": [
       -0.055981799960136414,
       0.009458404034376144,
@@ -400,6 +411,17 @@
     "source_doc": "test_talep_02.png",
     "konu": "Yeni Laptop Talebi",
     "talep_eden": "Ahmet Yilmaz",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "laptop talebi",
+      "insan kaynaklari",
+      "ekipman talebi",
+      "is verimliligi"
+    ],
+    "human_review": false,
     "embedding": [
       -0.0140480762347579,
       0.02893958054482937,
@@ -794,6 +816,17 @@
     "source_doc": "test_talep_03.png",
     "konu": "Klavye Degisimi",
     "talep_eden": "Zeynep Kaya",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.85,
+    "etiketler": [
+      "klavye degisimi",
+      "ekipman talebi",
+      "ariza bildirimi",
+      "it talebi"
+    ],
+    "human_review": false,
     "embedding": [
       -0.0630384087562561,
       0.02653476409614086,
@@ -1188,6 +1221,17 @@
     "source_doc": "test_talep_04.png",
     "konu": "Yazici Talebi",
     "talep_eden": "Mehmet Demir",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "yazıcı talebi",
+      "muhasebe departmanı",
+      "arıza bildirimi",
+      "ekipman temini"
+    ],
+    "human_review": false,
     "embedding": [
       -0.048494160175323486,
       0.05352059379220009,
@@ -1582,6 +1626,17 @@
     "source_doc": "test_talep_05.png",
     "konu": "Ek Ekran Talebi",
     "talep_eden": "Elif Sahin",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "ek ekran talebi",
+      "pazarlama departmani",
+      "donanım talebi",
+      "verimlilik"
+    ],
+    "human_review": false,
     "embedding": [
       -0.09686358273029327,
       -0.021200843155384064,
