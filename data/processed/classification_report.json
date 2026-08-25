@@ -8,9 +8,9 @@
       "ek monitör talebi",
       "donanım talebi",
       "yazılım geliştirme",
-      "iş ekipmanı"
+      "ekipman tahsisi"
     ],
-    "gerekce": "Belge, bir çalışanın departman ve gerekçe belirterek donanım talebinde bulunduğu resmi bir talep formu niteliğindedir.",
+    "gerekce": "Belge, bir çalışanın departman ve tarih bilgisiyle birlikte ekipman (monitör) talebini ilettiği resmi bir talep formu niteliğindedir.",
     "human_review": false
   },
   "test_talep_02.png": {
@@ -22,27 +22,38 @@
       "laptop talebi",
       "insan kaynaklari",
       "ekipman talebi",
-      "performans sorunu"
+      "is verimliligi"
     ],
-    "gerekce": "Belge, bir calisanin yeni laptop talebini iceren yapilandirilmis bir talep formudur.",
+    "gerekce": "Belge, bir calisanin yeni laptop tahsisi icin yaptigi resmi talebi icermektedir.",
     "human_review": false
   },
   "test_talep_03.png": {
     "siniflar": [
       "talep formu"
     ],
-    "guven": 0.9,
+    "guven": 0.85,
     "etiketler": [
       "klavye değişimi",
-      "arızalı ekipman",
-      "talep formu",
-      "bt talebi"
+      "arıza bildirimi",
+      "ekipman talebi",
+      "it talebi"
     ],
-    "gerekce": "Belge, bir çalışanın arızalı klavye için yeni ekipman talebini içeren bir talep formu niteliğindedir.",
+    "gerekce": "Belge, bir çalışanın arızalı klavye için yeni ekipman talep ettiği bir talep formu niteliğindedir.",
     "human_review": false
   },
   "test_talep_04.png": {
-    "hata": "Expecting ',' delimiter: line 1 column 237 (char 236)"
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "yazıcı talebi",
+      "muhasebe departmanı",
+      "arıza bildirimi",
+      "ekipman talebi"
+    ],
+    "gerekce": "Belge, bir departman adına yeni yazıcı temini talebini içeren resmi bir talep formu niteliğindedir.",
+    "human_review": false
   },
   "test_talep_05.png": {
     "siniflar": [
@@ -55,7 +66,7 @@
       "donanim talebi",
       "verimlilik"
     ],
-    "gerekce": "Belge, bir calisan tarafindan departman ve konu belirtilerek yapilan resmi bir ekipman talebini icermektedir.",
+    "gerekce": "Belge, bir calisan tarafindan ekipman talebini iceren yapilandirilmis bir talep formu niteligindedir.",
     "human_review": false
   }
 }

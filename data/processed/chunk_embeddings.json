@@ -9,12 +9,12 @@
     "siniflar": [
       "talep formu"
     ],
-    "guven": 0.92,
+    "guven": 0.95,
     "etiketler": [
-      "ek monitör talebi",
-      "donanım talebi",
+      "ekipman talebi",
+      "monitör",
       "yazılım geliştirme",
-      "iç yazışma"
+      "donanım talebi"
     ],
     "human_review": false,
     "embedding": [
@@ -419,7 +419,7 @@
       "laptop talebi",
       "insan kaynaklari",
       "ekipman talebi",
-      "is verimliligi"
+      "performans sorunu"
     ],
     "human_review": false,
     "embedding": [
@@ -821,9 +821,9 @@
     ],
     "guven": 0.85,
     "etiketler": [
-      "klavye degisimi",
+      "klavye değişimi",
+      "arıza bildirimi",
       "ekipman talebi",
-      "ariza bildirimi",
       "it talebi"
     ],
     "human_review": false,
@@ -1226,10 +1226,10 @@
     ],
     "guven": 0.9,
     "etiketler": [
-      "yazıcı talebi",
-      "muhasebe departmanı",
-      "arıza bildirimi",
-      "ekipman temini"
+      "yazici talebi",
+      "muhasebe departmani",
+      "ariza bildirimi",
+      "ekipman talebi"
     ],
     "human_review": false,
     "embedding": [
@@ -1631,9 +1631,9 @@
     ],
     "guven": 0.9,
     "etiketler": [
-      "ek ekran talebi",
+      "ekran talebi",
       "pazarlama departmani",
-      "donanım talebi",
+      "ekipman talebi",
       "verimlilik"
     ],
     "human_review": false,

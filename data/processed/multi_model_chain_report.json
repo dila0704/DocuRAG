@@ -1,0 +1,180 @@
+{
+  "cloud": {
+    "config_label": "cloud",
+    "active_mode": "cloud",
+    "provider": "AnthropicClient",
+    "model_name": "claude-sonnet-5",
+    "documents_total": 5,
+    "classification_success": 5,
+    "classification_errors": [],
+    "chain_duration_sec": 20.07,
+    "rag_chunks_indexed": 5,
+    "search_smoke_test": {
+      "query": "monitor talebi",
+      "ok": true,
+      "top_result": {
+        "score": 0.5359045267105103,
+        "chunk_id": 0,
+        "text": "Talep Eden: Elif Sahin\nTarih: 2026-08-16\nDepartman: Pazarlama\nKonu: Ek Ekran Talebi\n\nTasarim islerinde verimliligi artirmak icin ikinci bir ekrana ihtiyacim var.",
+        "token_count": 66,
+        "source_doc": "test_talep_05.png",
+        "siniflar": [
+          "talep formu"
+        ],
+        "guven": 0.9,
+        "etiketler": [
+          "ekran talebi",
+          "pazarlama",
+          "donanım talebi",
+          "iç yazışma"
+        ],
+        "human_review": false
+      }
+    },
+    "log_events": [
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "get_llm_client: active_mode=cloud provider=anthropic model_name=claude-sonnet-5 -> AnthropicClient"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate basladi: provider=AnthropicClient model=claude-sonnet-5 max_tokens=512"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate tamamlandi: provider=AnthropicClient model=claude-sonnet-5 sure=2.88sn yanit_uzunlugu=225"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate basladi: provider=AnthropicClient model=claude-sonnet-5 max_tokens=512"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate tamamlandi: provider=AnthropicClient model=claude-sonnet-5 sure=3.03sn yanit_uzunlugu=278"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate basladi: provider=AnthropicClient model=claude-sonnet-5 max_tokens=512"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate tamamlandi: provider=AnthropicClient model=claude-sonnet-5 sure=2.42sn yanit_uzunlugu=248"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate basladi: provider=AnthropicClient model=claude-sonnet-5 max_tokens=512"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate tamamlandi: provider=AnthropicClient model=claude-sonnet-5 sure=2.54sn yanit_uzunlugu=248"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate basladi: provider=AnthropicClient model=claude-sonnet-5 max_tokens=512"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate tamamlandi: provider=AnthropicClient model=claude-sonnet-5 sure=2.93sn yanit_uzunlugu=237"
+      }
+    ]
+  },
+  "local": {
+    "config_label": "local",
+    "active_mode": "local",
+    "provider": "LocalHFClient",
+    "model_name": "Qwen/Qwen2.5-0.5B-Instruct",
+    "documents_total": 5,
+    "classification_success": 5,
+    "classification_errors": [],
+    "chain_duration_sec": 63.18,
+    "rag_chunks_indexed": 5,
+    "search_smoke_test": {
+      "query": "monitor talebi",
+      "ok": true,
+      "top_result": {
+        "score": 0.5359045267105103,
+        "chunk_id": 0,
+        "text": "Talep Eden: Elif Sahin\nTarih: 2026-08-16\nDepartman: Pazarlama\nKonu: Ek Ekran Talebi\n\nTasarim islerinde verimliligi artirmak icin ikinci bir ekrana ihtiyacim var.",
+        "token_count": 66,
+        "source_doc": "test_talep_05.png",
+        "siniflar": [
+          "dilekçe",
+          "talep formu"
+        ],
+        "guven": 0.7,
+        "etiketler": [
+          "ek ekran talebi"
+        ],
+        "human_review": false
+      }
+    },
+    "log_events": [
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "get_llm_client: active_mode=local provider=huggingface model_name=Qwen/Qwen2.5-0.5B-Instruct -> LocalHFClient"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate basladi: provider=LocalHFClient model=Qwen/Qwen2.5-0.5B-Instruct max_tokens=512"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate tamamlandi: provider=LocalHFClient model=Qwen/Qwen2.5-0.5B-Instruct sure=14.55sn yanit_uzunlugu=151"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate basladi: provider=LocalHFClient model=Qwen/Qwen2.5-0.5B-Instruct max_tokens=512"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate tamamlandi: provider=LocalHFClient model=Qwen/Qwen2.5-0.5B-Instruct sure=11.77sn yanit_uzunlugu=137"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate basladi: provider=LocalHFClient model=Qwen/Qwen2.5-0.5B-Instruct max_tokens=512"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate tamamlandi: provider=LocalHFClient model=Qwen/Qwen2.5-0.5B-Instruct sure=13.08sn yanit_uzunlugu=210"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate basladi: provider=LocalHFClient model=Qwen/Qwen2.5-0.5B-Instruct max_tokens=512"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate tamamlandi: provider=LocalHFClient model=Qwen/Qwen2.5-0.5B-Instruct sure=11.72sn yanit_uzunlugu=143"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate basladi: provider=LocalHFClient model=Qwen/Qwen2.5-0.5B-Instruct max_tokens=512"
+      },
+      {
+        "level": "INFO",
+        "logger": "llm_factory",
+        "message": "generate tamamlandi: provider=LocalHFClient model=Qwen/Qwen2.5-0.5B-Instruct sure=11.92sn yanit_uzunlugu=156"
+      }
+    ]
+  }
+}

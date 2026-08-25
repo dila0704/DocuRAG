@@ -3,15 +3,15 @@
     "siniflar": [
       "fatura"
     ],
-    "guven": 0.98,
+    "guven": 0.97,
     "etiketler": [
       "fatura",
       "ofis malzemeleri",
       "monitor",
       "kdv",
-      "havale/eft"
+      "havale eft"
     ],
-    "gerekce": "Belge fatura numarasi, satici-alici bilgisi, urun/hizmet detayi ve KDV/toplam tutar iceren tipik bir fatura formatindadir.",
+    "gerekce": "Belge fatura no, tarih, satici-alici bilgileri, urun, kdv ve toplam tutar iceren tipik bir fatura formatindadir.",
     "human_review": false
   },
   "sozlesme_ornegi": {
@@ -26,7 +26,7 @@
       "müşteri",
       "fesih şartları"
     ],
-    "gerekce": "Belge taraflar arasında akdedilen madde madde düzenlenmiş bir hizmet sözleşmesi niteliğindedir.",
+    "gerekce": "Belge iki taraf arasında akdedilen, konu, süre ve fesih maddeleri içeren bir hizmet sözleşmesidir.",
     "human_review": false
   },
   "karma_fatura_sozlesme": {
@@ -39,10 +39,10 @@
       "bakım ve destek sözleşmesi",
       "fatura eki",
       "sunucu bakım hizmeti",
-      "aylık fatura",
+      "aylık periyot",
       "kdv"
     ],
-    "gerekce": "Belge hem bir sözleşmeye atıf yaparak onun eki niteliğinde olduğunu belirtmekte hem de fatura numarası, dönemi ve tutarı içeren bir fatura belgesi niteliği taşımaktadır.",
+    "gerekce": "Belge hem bir sözleşmeye atıfta bulunan hem de fatura numarası ve tutar bilgisi içeren bir fatura ekidir.",
     "human_review": false
   },
   "belirsiz_ornek": {
@@ -54,9 +54,9 @@
       "resmi yazı",
       "rica",
       "ek belge",
-      "kısa metin"
+      "genel yazışma"
     ],
-    "gerekce": "Metin resmi bir üslupla 'geregini rica ederim' ifadesiyle talepte bulunan kısa bir yazı niteliğinde olduğu için dilekçe olarak sınıflandırıldı, ancak içerik belirsiz olduğundan güven düşük.",
+    "gerekce": "Metin, resmi bir dille 'gereğinin rica edilmesi' ifadesiyle dilekçe formatına benzemekte ancak içerik detayı belirsizdir.",
     "human_review": true
   }
 }

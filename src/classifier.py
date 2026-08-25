@@ -15,18 +15,18 @@ Belirsiz durumlar icin ayri bir "belirsiz" sinifi ACILMAZ: LLM'in dondugu
 sonuclar "human_review": true olarak isaretlenir. Bu sayede kategori
 listesi temiz kalir ve dusuk guvenli belgeler ayri bir inceleme kuyruguna
 yonlendirilebilir (bkz. classify_document dokumantasyonu).
+
+LLM baglantisi dogrudan degil, llm_factory.get_llm_client() Factory'si
+uzerinden kuruluyor (DOC-27): hangi saglayicinin (Anthropic/OpenAI/yerel
+huggingface) kullanilacagi config/settings.yaml -> llm_settings.active_mode
+tarafindan belirlenir, bu modul degistirilmeden cloud/local arasinda gecis
+yapilabilir.
 """
 from __future__ import annotations
 
 import json
-import os
 
-import anthropic
-from dotenv import load_dotenv
-
-load_dotenv()
-
-DEFAULT_MODEL_NAME = "claude-sonnet-5"
+from llm_factory import LLMClient, get_llm_client
 
 DEFAULT_CATEGORIES = ["fatura", "sözleşme", "dilekçe", "talep formu", "diğer"]
 
@@ -63,10 +63,6 @@ KURALLAR:
 USER_INSTRUCTION = "Bu belge metnini yukaridaki semaya gore siniflandir ve JSON olarak dondur."
 
 
-def _get_client(api_key: str | None = None) -> anthropic.Anthropic:
-    return anthropic.Anthropic(api_key=api_key or os.getenv("ANTHROPIC_API_KEY"))
-
-
 def _extract_json(text: str) -> dict:
     cleaned = text.strip()
     if cleaned.startswith("```"):
@@ -80,9 +76,9 @@ def _extract_json(text: str) -> dict:
 def classify_document(
     text: str,
     categories: list[str] | None = None,
-    model_name: str = DEFAULT_MODEL_NAME,
-    client: anthropic.Anthropic | None = None,
+    client: LLMClient | None = None,
     confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
+    max_tokens: int = 512,
 ) -> dict:
     """Belge metnini LLM ile siniflandirir ve etiketler.
 
@@ -90,39 +86,40 @@ def classify_document(
         text: OCR'dan gelen ham metin ya da yapilandirilmis alanlarin metne
             cevrilmis hali.
         categories: izin verilen sinif listesi (varsayilan: DEFAULT_CATEGORIES).
-        model_name: kullanilacak Claude modeli.
-        client: disaridan verilebilecek anthropic.Anthropic istemcisi
-            (testlerde sahte/mock istemci vermek icin kullanislidir).
+        client: disaridan verilebilecek LLMClient (testlerde sahte/mock
+            istemci vermek icin kullanislidir). None ise config/settings.yaml
+            -> llm_settings.active_mode'a gore get_llm_client() Factory'si
+            uzerinden kurulur (bkz. llm_factory.py, DOC-26/DOC-27).
         confidence_threshold: "guven" bu degerin altinda kalirsa
             "human_review" True olarak isaretlenir.
+        max_tokens: LLM yanitindan beklenen azami token sayisi. Cok sayida
+            "etiketler"/uzun "gerekce" iceren yanitlar icin varsayilan 512
+            yetersiz kalirsa artirilabilir.
 
     Returns:
         {"siniflar": list[str], "guven": float, "etiketler": list[str],
          "gerekce": str, "human_review": bool}
+
+    Raises:
+        ValueError: text bossa.
+        json.JSONDecodeError: LLM gecerli JSON dondurmezse (kucuk/zayif
+            local modellerde gorulebilir, bkz. notebooks/12).
     """
     if not text or not text.strip():
         raise ValueError("text bos olamaz.")
 
     categories = categories or DEFAULT_CATEGORIES
-    client = client or _get_client()
+    client = client or get_llm_client()
 
     system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
         categories=", ".join(categories), fallback=FALLBACK_CATEGORY
     )
 
-    response = client.messages.create(
-        model=model_name,
-        max_tokens=512,
-        system=system_prompt,
-        messages=[
-            {
-                "role": "user",
-                "content": f"{USER_INSTRUCTION}\n\n---\n{text.strip()}\n---",
-            }
-        ],
+    raw_text = client.generate(
+        system_prompt=system_prompt,
+        user_message=f"{USER_INSTRUCTION}\n\n---\n{text.strip()}\n---",
+        max_tokens=max_tokens,
     )
-
-    raw_text = "".join(block.text for block in response.content if block.type == "text")
     result = _extract_json(raw_text)
 
     siniflar = result.get("siniflar")

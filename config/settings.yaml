@@ -4,14 +4,23 @@ project:
   version: "1.0"
 
 llm_settings:
-  active_mode: "cloud" 
-  
+  # active_mode: "cloud" | "local" - siniflandirma (classify_document) hangi
+  # blogu (cloud_model/local_model) kullanacagini belirler. Degistirmek icin
+  # baska hicbir yerde kod degisikligi gerekmez (bkz. src/llm_factory.py).
+  active_mode: "cloud"
+
   cloud_model:
-    provider: "anthropic" 
+    # provider: "anthropic" | "openai"
+    provider: "anthropic"
     model_name: "claude-sonnet-5"
-    
+    # provider: "openai" icin ornek: model_name: "gpt_4" (.env'de OPENAI_API_KEY gerekir)
+
   local_model:
+    # provider: "huggingface" - herhangi bir AutoModelForCausalLM uyumlu model_name calisir.
     provider: "huggingface"
+    # Asagidaki model gated (Meta onayi + .env'de HF_TOKEN gerektirir). Erisim
+    # yoksa test/gelistirme icin herkese acik kucuk bir model kullanilabilir,
+    # orn. "Qwen/Qwen2.5-0.5B-Instruct" (bkz. notebooks/11, notebooks/12).
     model_name: "meta-llama/Meta-Llama-3-8B-Instruct"
 
 vector_db:
