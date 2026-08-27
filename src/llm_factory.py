@@ -59,33 +59,76 @@ class LLMClient(ABC):
 
     model_name: str
 
-    def generate(self, system_prompt: str, user_message: str, max_tokens: int = 512) -> str:
-        """system_prompt + user_message verip modelin metin yanitini dondurur."""
-        provider = type(self).__name__
-        t0 = time.time()
-        logger.info(
-            "generate basladi: provider=%s model=%s max_tokens=%d",
-            provider, self.model_name, max_tokens,
-        )
-        try:
-            text = self._generate(system_prompt, user_message, max_tokens)
-        except Exception:
-            logger.exception(
-                "generate basarisiz: provider=%s model=%s sure=%.2fsn",
-                provider, self.model_name, time.time() - t0,
-            )
-            raise
+    # generate() basarisiz olursa varsayilan olarak bu kadar EK deneme yapilir
+    # (toplam deneme sayisi = 1 + DEFAULT_MAX_RETRIES). Gecici hatalar icin
+    # (rate limit, agdaki kisa kesinti, 5xx) dusunulmustur (DOC-31); programatik
+    # hatalar (orn. yanlis parametre) da retry edilir cunku _generate()
+    # saglayiciya gore hangi exception turunun "gecici" oldugunu ayirt etmek
+    # guvenilir degildir -- son deneme de basarisiz olursa orijinal hata
+    # oldugu gibi yukari firlatilir.
+    DEFAULT_MAX_RETRIES = 2
+    DEFAULT_RETRY_BACKOFF_BASE = 1.0  # saniye; deneme n icin bekleme = base * 2**(n-1)
 
-        logger.info(
-            "generate tamamlandi: provider=%s model=%s sure=%.2fsn yanit_uzunlugu=%d",
-            provider, self.model_name, time.time() - t0, len(text),
+    def generate(
+        self,
+        system_prompt: str,
+        user_message: str,
+        max_tokens: int = 512,
+        temperature: float = 0.0,
+        max_retries: int | None = None,
+        retry_backoff_base: float | None = None,
+    ) -> str:
+        """system_prompt + user_message verip modelin metin yanitini dondurur.
+
+        Args:
+            temperature: 0.0 en deterministik (siniflandirma gibi
+                tekrarlanabilirlik gereken gorevler icin varsayilan);
+                saglayici destekliyorsa yukari cekilerek daha "yaratici"
+                yanitlar alinabilir.
+            max_retries: _generate() basarisiz olursa yapilacak ek deneme
+                sayisi (varsayilan DEFAULT_MAX_RETRIES).
+            retry_backoff_base: denemeler arasi ussel bekleme suresinin
+                tabani, saniye (varsayilan DEFAULT_RETRY_BACKOFF_BASE).
+        """
+        max_retries = self.DEFAULT_MAX_RETRIES if max_retries is None else max_retries
+        retry_backoff_base = (
+            self.DEFAULT_RETRY_BACKOFF_BASE if retry_backoff_base is None else retry_backoff_base
         )
-        return text
+        provider = type(self).__name__
+        total_attempts = max_retries + 1
+
+        for attempt in range(total_attempts):
+            t0 = time.time()
+            logger.info(
+                "generate basladi: provider=%s model=%s max_tokens=%d temperature=%.2f deneme=%d/%d",
+                provider, self.model_name, max_tokens, temperature, attempt + 1, total_attempts,
+            )
+            try:
+                text = self._generate(system_prompt, user_message, max_tokens, temperature)
+            except Exception:
+                logger.exception(
+                    "generate basarisiz (deneme %d/%d): provider=%s model=%s sure=%.2fsn",
+                    attempt + 1, total_attempts, provider, self.model_name, time.time() - t0,
+                )
+                if attempt < max_retries:
+                    delay = retry_backoff_base * (2 ** attempt)
+                    logger.warning("generate %.2fsn sonra yeniden denenecek.", delay)
+                    time.sleep(delay)
+                    continue
+                raise
+
+            logger.info(
+                "generate tamamlandi: provider=%s model=%s sure=%.2fsn yanit_uzunlugu=%d",
+                provider, self.model_name, time.time() - t0, len(text),
+            )
+            return text
+
+        raise AssertionError("generate: erisilmemesi gereken kod yolu")  # pragma: no cover
 
     @abstractmethod
-    def _generate(self, system_prompt: str, user_message: str, max_tokens: int) -> str:
+    def _generate(self, system_prompt: str, user_message: str, max_tokens: int, temperature: float) -> str:
         """Saglayiciya ozgu asil uretim mantigi. generate() tarafindan
-        loglama/sure olcumu sarmalanmis sekilde cagrilir."""
+        loglama/sure olcumu/retry sarmalanmis sekilde cagrilir."""
         raise NotImplementedError
 
 
@@ -99,13 +142,32 @@ class AnthropicClient(LLMClient):
         self.model_name = model_name
         self._client = anthropic.Anthropic(api_key=api_key or os.getenv("ANTHROPIC_API_KEY"))
 
-    def _generate(self, system_prompt: str, user_message: str, max_tokens: int) -> str:
-        response = self._client.messages.create(
+    def _generate(self, system_prompt: str, user_message: str, max_tokens: int, temperature: float) -> str:
+        import anthropic
+
+        request_kwargs = dict(
             model=self.model_name,
             max_tokens=max_tokens,
             system=system_prompt,
             messages=[{"role": "user", "content": user_message}],
         )
+        try:
+            response = self._client.messages.create(temperature=temperature, **request_kwargs)
+        except anthropic.BadRequestError as exc:
+            # Bazi (daha yeni) modeller "temperature" parametresini artik
+            # desteklemiyor ve bunu 400 hatasiyla reddediyor (gercek API ile
+            # gozlemlendi: claude-sonnet-5). Bu durumda parametre olmadan
+            # bir kez daha denenir; genel retry mantigina (generate())
+            # birakilmaz cunku ayni istek her seferinde ayni sekilde
+            # basarisiz olurdu.
+            if "temperature" in str(exc).lower() and "deprecated" in str(exc).lower():
+                logger.info(
+                    "AnthropicClient: model=%s 'temperature' parametresini desteklemiyor, parametre olmadan tekrar deneniyor.",
+                    self.model_name,
+                )
+                response = self._client.messages.create(**request_kwargs)
+            else:
+                raise
         return "".join(block.text for block in response.content if block.type == "text")
 
 
@@ -119,10 +181,11 @@ class OpenAIClient(LLMClient):
         self.model_name = model_name
         self._client = openai.OpenAI(api_key=api_key or os.getenv("OPENAI_API_KEY"))
 
-    def _generate(self, system_prompt: str, user_message: str, max_tokens: int) -> str:
+    def _generate(self, system_prompt: str, user_message: str, max_tokens: int, temperature: float) -> str:
         response = self._client.chat.completions.create(
             model=self.model_name,
             max_tokens=max_tokens,
+            temperature=temperature,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message},
@@ -195,7 +258,7 @@ class LocalHFClient(LLMClient):
     def __init__(self, model_name: str):
         self.model_name = model_name
 
-    def _generate(self, system_prompt: str, user_message: str, max_tokens: int) -> str:
+    def _generate(self, system_prompt: str, user_message: str, max_tokens: int, temperature: float) -> str:
         import torch
 
         tokenizer, model = _get_local_model(self.model_name)
@@ -223,12 +286,20 @@ class LocalHFClient(LLMClient):
         inputs = tokenizer(
             prompt, return_tensors="pt", truncation=True, max_length=max_input_tokens
         ).to(model.device)
+        # temperature=0 -> greedy decoding (deterministik, do_sample=False).
+        # temperature>0 -> sample'lama acilir; cloud saglayicilarla ayni
+        # "temperature" sozlesmesi burada da korunur.
+        generation_kwargs = (
+            {"do_sample": False}
+            if temperature <= 0
+            else {"do_sample": True, "temperature": temperature}
+        )
         with torch.no_grad():
             output_ids = model.generate(
                 **inputs,
                 max_new_tokens=max_tokens,
-                do_sample=False,
                 pad_token_id=tokenizer.pad_token_id,
+                **generation_kwargs,
             )
 
         generated_ids = output_ids[0][inputs["input_ids"].shape[1]:]

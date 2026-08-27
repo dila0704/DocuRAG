@@ -9,7 +9,12 @@ token uzunlugunda sert kesim yapilir.
 """
 from __future__ import annotations
 
+import logging
+
 import tiktoken
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 _ENCODING = tiktoken.get_encoding("cl100k_base")
 
@@ -98,11 +103,18 @@ def split_text(
     if chunk_overlap >= chunk_size:
         raise ValueError("chunk_overlap, chunk_size'dan kucuk olmali.")
 
-    raw_pieces = _recursive_split(text.strip(), chunk_size, separators or DEFAULT_SEPARATORS)
+    stripped = text.strip()
+    if not stripped:
+        logger.debug("split_text: bos/bosluk metin verildi, bos liste donduruluyor.")
+        return []
+
+    raw_pieces = _recursive_split(stripped, chunk_size, separators or DEFAULT_SEPARATORS)
     merged = _merge_with_overlap(raw_pieces, chunk_size, chunk_overlap)
 
-    return [
-        {"chunk_id": i, "text": chunk.strip(), "token_count": count_tokens(chunk)}
-        for i, chunk in enumerate(merged)
-        if chunk.strip()
+    non_empty_chunks = [chunk.strip() for chunk in merged if chunk.strip()]
+    result = [
+        {"chunk_id": i, "text": chunk, "token_count": count_tokens(chunk)}
+        for i, chunk in enumerate(non_empty_chunks)
     ]
+    logger.debug("split_text: %d karakterlik metin %d chunk'a bolundu.", len(stripped), len(result))
+    return result

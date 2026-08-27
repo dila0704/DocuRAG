@@ -1,5 +1,6 @@
 [
   {
+    "id": 0,
     "chunk_id": 0,
     "text": "Talep Eden: Dila Alpay\nTarih: 2026-08-12\nDepartman: Yazılım Geliştirme\nKonu: Ek Monitör Talebi\n\nGeliştirmekte olduğum yapay zeka destekli doküman analiz modülünün test işlemleri sırasında, log takibi ve kod yazımını eşzamanlı yürütebilmek amacıyla tarafıma 1 adet 27 inç monitör tahsis edilmesini rica ederim.",
     "token_count": 125,
@@ -19,6 +20,7 @@
     "human_review": false
   },
   {
+    "id": 1,
     "chunk_id": 1,
     "text": "Talep Eden: Ahmet Yilmaz\nTarih: 2026-08-13\nDepartman: Insan Kaynaklari\nKonu: Yeni Laptop Talebi\n\nMevcut laptopumun performans sorunlari nedeniyle is verimliligimi etkilemektedir. Tarafima yeni bir laptop tahsis edilmesini rica ederim.",
     "token_count": 88,
@@ -38,6 +40,7 @@
     "human_review": false
   },
   {
+    "id": 2,
     "chunk_id": 2,
     "text": "Talep Eden: Zeynep Kaya\nTarih: 2026-08-14\nDepartman: None\nKonu: Klavye Degisimi\n\nKlavyemdeki birkac tus arizali. Yeni bir klavye talep ediyorum.",
     "token_count": 64,
@@ -61,6 +64,7 @@
     "inceleme_tarihi": "2026-08-22"
   },
   {
+    "id": 3,
     "chunk_id": 3,
     "text": "Talep Eden: Mehmet Demir\nTarih: 2026-08-15\nDepartman: Muhasebe\nKonu: Yazici Talebi\n\nDepartmanimizda ortak kullanilan yazici arizalandi. Yeni bir yazici temin edilmesini rica ederim.",
     "token_count": 70,
@@ -80,6 +84,7 @@
     "human_review": false
   },
   {
+    "id": 4,
     "chunk_id": 4,
     "text": "Talep Eden: Elif Sahin\nTarih: 2026-08-16\nDepartman: Pazarlama\nKonu: Ek Ekran Talebi\n\nTasarim islerinde verimliligi artirmak icin ikinci bir ekrana ihtiyacim var.",
     "token_count": 66,
@@ -97,5 +102,45 @@
       "verimlilik"
     ],
     "human_review": false
+  },
+  {
+    "id": 5,
+    "chunk_id": 0,
+    "text": "FATURA\n\nFatura No: FTR-2026-0142\nTarih: 20.08.2026\nSatici: Kaya Ofis Malzemeleri Ltd. Sti.\nAlici: DocuRAG Yazilim A.S.\n\nAciklama: A4 kagit (10 koli), toner kartusu (4 adet)\nAra Toplam: 3.200,00 TL\nKDV (%20): 640,00 TL\nGenel Toplam: 3.840,00 TL\n\nOdeme Vadesi: 30 gun\nIBAN: TR33 0006 1005 1978 6457 8413 26",
+    "token_count": 150,
+    "source_doc": "ornek_fatura_upload.png",
+    "siniflar": [
+      "fatura"
+    ],
+    "guven": 0.98,
+    "etiketler": [
+      "fatura",
+      "ofis malzemeleri",
+      "kdv",
+      "ödeme vadesi",
+      "iban"
+    ],
+    "human_review": false,
+    "ingested_at": "2026-08-27T12:01:14.373260+00:00"
+  },
+  {
+    "id": 6,
+    "chunk_id": 0,
+    "text": "```\nFATURA\n\nFatura No: FTR-2026-0142\nTarih: 20.08.2026\nSatici: Kaya Ofis Malzemeleri Ltd. Sti.\nAlici: DocuRAG Yazilim A.S.\n\nAciklama: A4 kagit (10 koli), toner kartusu (4 adet)\nAra Toplam: 3.200,00 TL\nKDV (%20): 640,00 TL\nGenel Toplam: 3.840,00 TL\n\nOdeme Vadesi: 30 gun\nIBAN: TR33 0006 1005 1978 6457 8413 26\n```",
+    "token_count": 154,
+    "source_doc": "ornek_fatura_upload.png",
+    "siniflar": [
+      "fatura"
+    ],
+    "guven": 0.98,
+    "etiketler": [
+      "fatura",
+      "ofis malzemeleri",
+      "kdv",
+      "odeme vadesi",
+      "iban"
+    ],
+    "human_review": false,
+    "ingested_at": "2026-08-27T12:20:39.521350+00:00"
   }
 ]

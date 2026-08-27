@@ -25,10 +25,26 @@ yapilabilir.
 from __future__ import annotations
 
 import json
+import logging
 
 from llm_factory import LLMClient, get_llm_client
 
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
+
 DEFAULT_CATEGORIES = ["fatura", "sözleşme", "dilekçe", "talep formu", "diğer"]
+
+# classify_document(), LLM gecerli JSON dondurmezse bu kadar deneme yapar
+# (ilk deneme + tekrar istekler). Kucuk/zayif local modellerde (bkz.
+# notebooks/12) JSON formatinin bozulmasi beklenen bir durum oldugu icin,
+# hatali yanit dogrudan cagirana firlatilmadan once modelden duzeltmesi
+# istenir (DOC-31).
+DEFAULT_MAX_JSON_ATTEMPTS = 2
+
+# classify_document() varsayilan olarak deterministik (temperature=0) calisir:
+# siniflandirma gibi tekrarlanabilirlik gereken bir gorevde ayni belgenin
+# farkli calistirmalarda farkli sinif/guven skoru uretmesi istenmez (DOC-31).
+DEFAULT_TEMPERATURE = 0.0
 
 FALLBACK_CATEGORY = "diğer"
 
@@ -73,12 +89,54 @@ def _extract_json(text: str) -> dict:
     return json.loads(cleaned)
 
 
+def _generate_and_parse_json(
+    client: LLMClient,
+    system_prompt: str,
+    user_message: str,
+    max_tokens: int,
+    temperature: float,
+    max_json_attempts: int,
+) -> dict:
+    """client.generate() cagirip yanit gecerli JSON olana kadar (en fazla
+    max_json_attempts kez) dener; bozuk yanit alinirsa bir sonraki denemede
+    modelden hatayi duzeltmesi istenir (DOC-31)."""
+    current_user_message = user_message
+    last_error: json.JSONDecodeError | None = None
+
+    for attempt in range(max_json_attempts):
+        raw_text = client.generate(
+            system_prompt=system_prompt,
+            user_message=current_user_message,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+        try:
+            return _extract_json(raw_text)
+        except json.JSONDecodeError as exc:
+            last_error = exc
+            logger.warning(
+                "classify_document: gecersiz JSON yaniti (deneme %d/%d): %s",
+                attempt + 1, max_json_attempts, exc,
+            )
+            current_user_message = (
+                f"{user_message}\n\n---\n"
+                f"Onceki yanitin gecerli bir JSON nesnesi degildi (hata: {exc}). "
+                f"Onceki yanitin: {raw_text!r}\n"
+                "Lutfen SADECE gecerli bir JSON nesnesi dondur, baska hicbir metin ekleme."
+            )
+
+    logger.error("classify_document: %d denemeden sonra gecerli JSON alinamadi.", max_json_attempts)
+    raise last_error
+
+
 def classify_document(
     text: str,
     categories: list[str] | None = None,
     client: LLMClient | None = None,
     confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
     max_tokens: int = 512,
+    temperature: float = DEFAULT_TEMPERATURE,
+    max_json_attempts: int = DEFAULT_MAX_JSON_ATTEMPTS,
 ) -> dict:
     """Belge metnini LLM ile siniflandirir ve etiketler.
 
@@ -95,6 +153,12 @@ def classify_document(
         max_tokens: LLM yanitindan beklenen azami token sayisi. Cok sayida
             "etiketler"/uzun "gerekce" iceren yanitlar icin varsayilan 512
             yetersiz kalirsa artirilabilir.
+        temperature: LLM'e gonderilen sicaklik degeri. Varsayilan 0.0
+            (deterministik): siniflandirma sonucunun ayni belge icin
+            calistirmalar arasinda tutarli kalmasi hedeflenir.
+        max_json_attempts: LLM gecersiz JSON dondurursa (kucuk/zayif local
+            modellerde gorulebilir, bkz. notebooks/12) modelden duzeltmesi
+            istenerek en fazla bu kadar deneme yapilir.
 
     Returns:
         {"siniflar": list[str], "guven": float, "etiketler": list[str],
@@ -102,8 +166,8 @@ def classify_document(
 
     Raises:
         ValueError: text bossa.
-        json.JSONDecodeError: LLM gecerli JSON dondurmezse (kucuk/zayif
-            local modellerde gorulebilir, bkz. notebooks/12).
+        json.JSONDecodeError: max_json_attempts denemeden sonra da LLM
+            gecerli JSON dondurmezse.
     """
     if not text or not text.strip():
         raise ValueError("text bos olamaz.")
@@ -115,22 +179,32 @@ def classify_document(
         categories=", ".join(categories), fallback=FALLBACK_CATEGORY
     )
 
-    raw_text = client.generate(
+    logger.info("classify_document basladi: metin_uzunlugu=%d kategori_sayisi=%d", len(text), len(categories))
+    result = _generate_and_parse_json(
+        client=client,
         system_prompt=system_prompt,
         user_message=f"{USER_INSTRUCTION}\n\n---\n{text.strip()}\n---",
         max_tokens=max_tokens,
+        temperature=temperature,
+        max_json_attempts=max_json_attempts,
     )
-    result = _extract_json(raw_text)
 
     siniflar = result.get("siniflar")
     if not isinstance(siniflar, list):
         siniflar = [siniflar] if siniflar else []
     valid_siniflar = [s for s in dict.fromkeys(siniflar) if s in categories]
+    invalid_siniflar = [s for s in siniflar if s not in categories]
+    if invalid_siniflar:
+        logger.warning("classify_document: taninmayan sinif(lar) elendi: %s", invalid_siniflar)
     result["siniflar"] = valid_siniflar or [FALLBACK_CATEGORY]
 
     guven = result.get("guven")
     result["human_review"] = not isinstance(guven, (int, float)) or guven < confidence_threshold
 
+    logger.info(
+        "classify_document tamamlandi: siniflar=%s guven=%s human_review=%s",
+        result["siniflar"], guven, result["human_review"],
+    )
     return result
 
 
@@ -141,6 +215,7 @@ def classify_chunks(chunks: list[dict], **kwargs) -> dict:
     Chunk chunk degil belge butunu uzerinden siniflandirma yapmak, tek ve
     tutarli bir sinif/etiket kumesi elde etmek icin daha dogru sonuc verir.
     """
+    logger.info("classify_chunks: %d chunk birlestirilip siniflandirilacak.", len(chunks))
     full_text = "\n".join(c["text"] for c in chunks)
     return classify_document(full_text, **kwargs)
 
@@ -171,9 +246,11 @@ def attach_labels_to_chunks(chunks: list[dict], classifications: dict[str, dict]
         yeni bir liste.
     """
     labeled = []
+    missing_docs = set()
     for chunk in chunks:
         classification = classifications.get(chunk["source_doc"])
         if classification is None:
+            missing_docs.add(chunk["source_doc"])
             classification = {"siniflar": [FALLBACK_CATEGORY], "guven": None, "etiketler": [], "human_review": True}
         labeled.append({
             **chunk,
@@ -182,4 +259,6 @@ def attach_labels_to_chunks(chunks: list[dict], classifications: dict[str, dict]
             "etiketler": classification.get("etiketler", []),
             "human_review": classification.get("human_review", True),
         })
+    if missing_docs:
+        logger.info("attach_labels_to_chunks: siniflandirmasi olmayan %d belge human_review=True isaretlendi.", len(missing_docs))
     return labeled

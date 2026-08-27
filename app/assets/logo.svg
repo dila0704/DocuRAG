@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="56" viewBox="0 0 220 56">
+  <circle cx="28" cy="28" r="19" fill="none" stroke="#8B6F47" stroke-width="1.8"/>
+  <text x="28" y="35" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="17" fill="#8B6F47">dr</text>
+  <text x="58" y="35" font-family="Georgia, 'Times New Roman', serif" font-size="21" fill="#1C1A17">DocuRAG</text>
+</svg>

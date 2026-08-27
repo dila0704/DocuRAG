@@ -8,8 +8,13 @@ indirmesi haric) embedding uretilebilir. Turkce metinler icin
 """
 from __future__ import annotations
 
+import logging
+
 import numpy as np
 from sentence_transformers import SentenceTransformer
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 DEFAULT_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
@@ -18,6 +23,7 @@ _model_cache: dict[str, SentenceTransformer] = {}
 
 def _get_model(model_name: str = DEFAULT_MODEL_NAME) -> SentenceTransformer:
     if model_name not in _model_cache:
+        logger.info("embedder: model yukleniyor (ilk kullanim): %s", model_name)
         _model_cache[model_name] = SentenceTransformer(model_name)
     return _model_cache[model_name]
 
@@ -41,6 +47,7 @@ def embed_chunks(
 
     model = _get_model(model_name)
     texts = [c["text"] for c in chunks]
+    logger.info("embed_chunks: %d chunk vektorlestiriliyor (model=%s).", len(chunks), model_name)
     vectors = model.encode(texts, convert_to_numpy=True, normalize_embeddings=True)
 
     return [
