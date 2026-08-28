@@ -142,5 +142,44 @@
     ],
     "human_review": false,
     "ingested_at": "2026-08-27T12:20:39.521350+00:00"
+  },
+  {
+    "id": 7,
+    "chunk_id": 0,
+    "text": "```\nFATURA\n\nFatura No: FTR-2026-0142\nTarih: 20.08.2026\nSatici: Kaya Ofis Malzemeleri Ltd. Sti.\nAlici: DocuRAG Yazilim A.S.\n\nAciklama: A4 kagit (10 koli), toner kartusu (4 adet)\nAra Toplam: 3.200,00 TL\nKDV (%20): 640,00 TL\nGenel Toplam: 3.840,00 TL\n\nOdeme Vadesi: 30 gun\nIBAN: TR33 0006 1005 1978 6457 8413 26\n```",
+    "token_count": 154,
+    "source_doc": "ornek_fatura_upload.png",
+    "siniflar": [
+      "fatura"
+    ],
+    "guven": 0.98,
+    "etiketler": [
+      "fatura",
+      "ofis malzemeleri",
+      "kdv",
+      "ödeme vadesi",
+      "iban"
+    ],
+    "human_review": false,
+    "ingested_at": "2026-08-28T11:53:47.148586+00:00"
+  },
+  {
+    "id": 8,
+    "chunk_id": 0,
+    "text": "DONANIM TALEP FORMU\n\nTalep Eden: Dila Alpay\nTarih: 12.08.2026\nDepartman: Yazılım Geliştirme\nKonu: Ek Monitör Talebi\n\nAçıklama:\nGeliştirmekte olduğum yapay zeka destekli doküman analiz modülünün test işlemleri sırasında, log takibi ve kod yazımını eşzamanlı yürütebilmek amacıyla tarafıma 1 adet 27 inç monitör tahsis edilmesini rica ederim.\n\nİmza:",
+    "token_count": 143,
+    "source_doc": "test_talep_01.png",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.95,
+    "etiketler": [
+      "donanım talebi",
+      "monitör",
+      "yazılım geliştirme",
+      "iş ekipmanı"
+    ],
+    "human_review": false,
+    "ingested_at": "2026-08-28T11:55:15.737441+00:00"
   }
 ]
