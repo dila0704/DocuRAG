@@ -38,11 +38,11 @@ _CSS = """
 
   --highlight: #FAC775;
 
-  --cat-fatura: #3C4568; --cat-fatura-bg: #E8E9F0;
-  --cat-sozlesme: #6B4267; --cat-sozlesme-bg: #EFE6EE;
-  --cat-dilekce: #7A3B36; --cat-dilekce-bg: #F0E3E1;
-  --cat-talep: #4B5A3A; --cat-talep-bg: #E9ECE1;
-  --cat-diger: #6B6459; --cat-diger-bg: #EAE7E1;
+  --cat-fatura: #2F6690; --cat-fatura-bg: #E1EBF3;
+  --cat-sozlesme: #93447E; --cat-sozlesme-bg: #F3E4EF;
+  --cat-dilekce: #B0532E; --cat-dilekce-bg: #F6E5D9;
+  --cat-talep: #4F7A3D; --cat-talep-bg: #E5EEE0;
+  --cat-diger: #756D5C; --cat-diger-bg: #ECE8DE;
 
   --shadow: 0 1px 2px rgba(28,26,23,0.04), 0 3px 10px rgba(28,26,23,0.05);
   --shadow-lg: 0 2px 4px rgba(28,26,23,0.05), 0 12px 28px rgba(28,26,23,0.09);
@@ -85,6 +85,23 @@ _CSS = """
 .answer-card{background:var(--surface);border-radius:12px;padding:20px 24px;box-shadow:var(--shadow);border-left:2.5px solid var(--bronze);margin-bottom:16px;}
 .citation-link{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:11.5px;color:var(--accent);text-decoration:none;padding:0 2px;}
 .citation-link:hover{text-decoration:underline;}
+
+/* Arama sayfasi bos hali -- gercek index istatistikleriyle ("N belge,
+   M kategori") ve gercek belgelerin kucuk (bulanik) onizlemeleriyle,
+   uygulamanin ne yaptigini soyut bir mesaj yerine somut gostermek icin. */
+.empty-state{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px 28px;box-shadow:var(--shadow);}
+
+/* Belge onizleme karti -- gercek belge goruntusu hafifce bulanik
+   (blur) halde arka plan, ustunde konu/dosya adi bir scrim uzerinde.
+   Hover'da netlesir -- "tikla ve gor" davranisini ima eder. */
+.doc-preview-chip{position:relative;display:block;width:132px;height:96px;border-radius:10px;overflow:hidden;text-decoration:none;box-shadow:var(--shadow);flex:none;background:var(--surface-alt);}
+.doc-preview-chip img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(3px) brightness(0.88) saturate(0.9);transform:scale(1.08);transition:filter 0.2s ease, transform 0.2s ease;}
+.doc-preview-chip:hover img{filter:blur(0) brightness(0.97);transform:scale(1.0);}
+.doc-preview-chip .scrim{position:absolute;inset:0;background:linear-gradient(180deg, rgba(28,26,23,0) 40%, rgba(28,26,23,0.72) 100%);}
+.doc-preview-chip .label{position:absolute;left:9px;right:9px;bottom:7px;color:#FBF9F4;font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:600;line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.doc-preview-chip .lens{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:rgba(252,251,247,0.9);display:flex;align-items:center;justify-content:center;font-size:11px;opacity:0;transition:opacity 0.2s ease;}
+.doc-preview-chip:hover .lens{opacity:1;}
 </style>
 """
 

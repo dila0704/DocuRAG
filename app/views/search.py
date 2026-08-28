@@ -8,7 +8,12 @@ app/styles.py). Grounding (kaynaklanma) zorunlulugu backend'de
 """
 from __future__ import annotations
 
+import base64
 import html
+import logging
+import mimetypes
+from collections import Counter
+from pathlib import Path
 from urllib.parse import quote
 
 import streamlit as st
@@ -19,6 +24,24 @@ import data_access
 import pipeline
 import vector_store
 from styles import inject_global_styles
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
+
+# Belge onizleme kartlari icin: bir source_doc'un orijinal gorseli hem
+# data/raw_docs/uploads/ (yeni yuklenenler) hem de data/raw_docs/ (baslangic
+# seed belgeleri) altinda olabilir -- ikisi de kontrol edilir.
+_DOC_IMAGE_DIRS = (Path("data/raw_docs/uploads"), Path("data/raw_docs"))
+
+
+def _document_preview_data_uri(source_doc: str) -> str | None:
+    for directory in _DOC_IMAGE_DIRS:
+        candidate = directory / source_doc
+        if candidate.is_file():
+            mime = mimetypes.guess_type(candidate.name)[0] or "image/png"
+            encoded = base64.b64encode(candidate.read_bytes()).decode("ascii")
+            return f"data:{mime};base64,{encoded}"
+    return None
 
 # Belirli bir belgeye sinirlanan sorularda, o belgenin TUM chunk'lari
 # (sadece FAISS'in genel top-k'si degil) cevaba dahil edilir -- "yuzeysel"
@@ -51,6 +74,7 @@ try:
     _, all_metadata = data_access.get_index(index_path)
     doc_options = ["Tüm belgeler"] + sorted({m.get("source_doc", "bilinmiyor") for m in all_metadata.values()})
 except FileNotFoundError:
+    all_metadata = {}
     doc_options = ["Tüm belgeler"]
 
 filter_col, slider_col = st.columns([1.4, 1])
@@ -86,97 +110,176 @@ if clicked is not None:
     except ValueError:
         pass
 
-if not query:
-    st.info("Aramaya başlamak için yukarıya bir sorgu yazın.")
-    st.stop()
+# Sonuc alani st.empty() ile tek bir placeholder'a alinir: her yeni
+# sorguda bu satira ulasilir ulasilmaz onceki calistirmadan kalan icerik
+# (eski ozet/sonuc kartlari) aninda temizlenir. Aksi halde arama/LLM
+# cagrilari suren birkac saniye boyunca ekranda BIR ONCEKI sorgunun
+# cevabi gorunmeye devam eder (Streamlit, script bu satira yeniden
+# ulasana kadar eski elemanlari degistirmez).
+results_area = st.empty()
+with results_area.container():
+    if not query:
+        # Bos durum: soyut "sorgu yaz" mesaji yerine, indekslenen
+        # belgelerden uretilen GERCEK istatistikler (kac belge, kac
+        # kategori) ve GERCEK belgelere ait tiklanabilir ornek sorgular
+        # gosterilir -- boylece kullanici sayfaya girer girmez pipeline'in
+        # (OCR -> siniflandirma -> kaynakli arama) ne urettigini gorur.
+        documents: dict[str, dict] = {}
+        for m in all_metadata.values():
+            doc = m.get("source_doc", "bilinmiyor")
+            if doc not in documents or m.get("ingested_at", "") > documents[doc].get("ingested_at", ""):
+                documents[doc] = m
 
-try:
-    data_access.get_index(index_path)
-except FileNotFoundError:
-    st.warning("Henüz hiçbir belge indekslenmemiş. Önce **Belge Yükleme** sayfasından bir belge ekleyin.")
-    st.stop()
+        if not documents:
+            st.info("Henüz hiçbir belge indekslenmemiş. Önce **Belge Yükleme** sayfasından bir belge ekleyin.")
+            st.stop()
 
-with st.spinner("Aranıyor..."):
+        category_counter = Counter()
+        for m in documents.values():
+            for category in m.get("siniflar", []):
+                category_counter[category] += 1
+
+        example_docs = sorted(documents.values(), key=lambda m: m.get("ingested_at", ""), reverse=True)[:3]
+        chip_cards = []
+        for m in example_docs:
+            label = html.escape(m.get("konu") or m["source_doc"])
+            query_value = quote(m.get("konu") or m["source_doc"])
+            preview_uri = _document_preview_data_uri(m["source_doc"])
+            img_tag = f'<img src="{preview_uri}" alt="">' if preview_uri else ""
+            chip_cards.append(
+                f'<a class="doc-preview-chip" href="?q={query_value}" target="_self">'
+                f'{img_tag}<span class="scrim"></span><span class="lens">🔍</span>'
+                f'<span class="label">{label}</span></a>'
+            )
+        chips_html = "".join(chip_cards)
+
+        # NOT: components.render_class_distribution_donut() kendi coklu
+        # satirli HTML'ini (bos satirlarla baslayip biten bir f-string
+        # olarak) dondurur. Bunu BASKA bir cok-satirli f-string'in
+        # ORTASINA gomersek, aradaki bos satir Markdown'un HTML block
+        # algisini erken kapatir ve geri kalan icerik duz metin/kod
+        # bloğu olarak sizar. Bu yuzden donut, dashboard.py'deki gibi
+        # AYRI ve kendi basina bir st.markdown() cagrisiyla basiliyor.
+        left, right = st.columns([2, 1], vertical_alignment="center")
+        with left:
+            st.markdown(
+                f"""
+                <div class="empty-state">
+                  <div class="disp" style="font-size:20px;font-style:italic;margin-bottom:8px;">
+                    {len(documents)} belge işlendi, {len(category_counter)} kategoriye ayrıldı
+                  </div>
+                  <div style="color:var(--text-secondary);font-size:13px;line-height:1.65;margin-bottom:18px;">
+                    Her belge OCR ile okunuyor, LLM ile sınıflandırılıyor ve anlam bazlı (semantik) aranabilir
+                    hale getiriliyor. Gerçek bir belgeyle başlamak için aşağıdakilerden birine tıkla:
+                  </div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">{chips_html}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with right:
+            st.markdown(components.render_class_distribution_donut(category_counter), unsafe_allow_html=True)
+        st.stop()
+
+    try:
+        data_access.get_index(index_path)
+    except FileNotFoundError:
+        st.warning("Henüz hiçbir belge indekslenmemiş. Önce **Belge Yükleme** sayfasından bir belge ekleyin.")
+        st.stop()
+
+    try:
+        with st.spinner("Aranıyor..."):
+            if scoped_to_doc:
+                # Belgeye sinirlandiginda FAISS'in genel top-k'sina degil, o
+                # belgenin TUM parcalarina ihtiyacimiz var -- once genis bir
+                # top-k ile tum siralamayi al, sonra sadece secili belgeye ait
+                # olanlari (gercek relevance skorlariyla) filtrele.
+                all_ranked = pipeline.search_documents(query, top_k=ALL_CHUNKS_TOP_K)
+                results = [c for c in all_ranked if c.get("source_doc") == scoped_to_doc]
+            else:
+                results = pipeline.search_documents(query, top_k=top_k)
+    except Exception:
+        logger.exception("search_documents basarisiz: sorgu=%r", query)
+        st.error("Arama sırasında bir sorun oluştu. Lütfen daha sonra tekrar deneyin.")
+        st.stop()
+
+    if not results:
+        st.info("Sonuç bulunamadı.")
+        st.stop()
+
+    for i, chunk in enumerate(results, start=1):
+        chunk["_citation_index"] = i
+
     if scoped_to_doc:
-        # Belgeye sinirlandiginda FAISS'in genel top-k'sina degil, o
-        # belgenin TUM parcalarina ihtiyacimiz var -- once genis bir
-        # top-k ile tum siralamayi al, sonra sadece secili belgeye ait
-        # olanlari (gercek relevance skorlariyla) filtrele.
-        all_ranked = pipeline.search_documents(query, top_k=ALL_CHUNKS_TOP_K)
-        results = [c for c in all_ranked if c.get("source_doc") == scoped_to_doc]
-    else:
-        results = pipeline.search_documents(query, top_k=top_k)
+        st.caption(f"📄 **{scoped_to_doc}** belgesinin tamamı ({len(results)} parça) kullanılarak yanıtlanıyor.")
 
-if not results:
-    st.info("Sonuç bulunamadı.")
-    st.stop()
+    answer_error = False
+    try:
+        with st.spinner("Özet oluşturuluyor..."):
+            grounded = answer_module.generate_grounded_answer(query, results)
+    except Exception:
+        logger.exception("generate_grounded_answer basarisiz: sorgu=%r", query)
+        grounded = {"grounded": False, "sentences": []}
+        answer_error = True
+        st.warning("Özet oluşturulurken bir sorun oluştu; aşağıdaki sonuçları inceleyebilirsiniz.")
 
-for i, chunk in enumerate(results, start=1):
-    chunk["_citation_index"] = i
+    if grounded["grounded"]:
+        query_param = quote(query)
+        sentence_parts = []
+        for sentence in grounded["sentences"]:
+            text = html.escape(sentence["text"])
+            links = " ".join(
+                f'<a class="citation-link" href="?q={query_param}&cite={s}" target="_self">[{s}]</a>'
+                for s in sentence["sources"]
+            )
+            sentence_parts.append(f"{text} {links}")
+        summary_html = " ".join(sentence_parts)
 
-if scoped_to_doc:
-    st.caption(f"📄 **{scoped_to_doc}** belgesinin tamamı ({len(results)} parça) kullanılarak yanıtlanıyor.")
-
-with st.spinner("Özet oluşturuluyor..."):
-    grounded = answer_module.generate_grounded_answer(query, results)
-
-if grounded["grounded"]:
-    query_param = quote(query)
-    sentence_parts = []
-    for sentence in grounded["sentences"]:
-        text = html.escape(sentence["text"])
-        links = " ".join(
-            f'<a class="citation-link" href="?q={query_param}&cite={s}" target="_self">[{s}]</a>'
-            for s in sentence["sources"]
-        )
-        sentence_parts.append(f"{text} {links}")
-    summary_html = " ".join(sentence_parts)
-
-    st.markdown(
-        f"""
-        <div class="answer-card">
-          <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="#8B6F47"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2z"/></svg>
-            <span class="mono" style="font-size:9.5px;font-weight:700;letter-spacing:0.09em;color:var(--bronze);text-transform:uppercase;">Özet</span>
-          </div>
-          <div class="disp" style="font-size:16px;font-style:italic;line-height:1.65;">{summary_html}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-else:
-    st.caption("Kaynaklardan güvenle özetlenebilecek bir cevap oluşturulamadı; aşağıdaki sonuçları inceleyin.")
-
-groups = components.group_results_by_document(results)
-st.caption(f"{len(groups)} belge · {len(results)} eşleşen parça")
-
-for group in groups:
-    citation_indices = {c["_citation_index"] for c in group["chunks"]}
-    is_highlighted = st.session_state["highlighted_source"] in citation_indices
-    card_class = "result-card highlighted" if is_highlighted else "result-card"
-
-    badges = "".join(components.render_category_badge(c) for c in group["siniflar"])
-    stamp = components.render_confidence_stamp(group["guven"])
-    best_chunk = max(group["chunks"], key=lambda c: c.get("score", 0.0))
-    preview = components.highlight_terms(best_chunk["text"][:280], query)
-
-    chunk_scores = " · ".join(
-        f'[{c["_citation_index"]}] %{round(c.get("score", 0.0) * 100)}' for c in sorted(group["chunks"], key=lambda c: c["_citation_index"])
-    )
-
-    st.markdown(
-        f"""
-        <div class="{card_class}">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
-            <div>
-              <div style="font-weight:600;font-size:14px;">{html.escape(group['source_doc'])}</div>
-              <div class="mono" style="font-size:10.5px;color:var(--text-tertiary);margin-top:1px;">{html.escape(chunk_scores)}</div>
+        st.markdown(
+            f"""
+            <div class="answer-card">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#8B6F47"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2z"/></svg>
+                <span class="mono" style="font-size:9.5px;font-weight:700;letter-spacing:0.09em;color:var(--bronze);text-transform:uppercase;">Özet</span>
+              </div>
+              <div class="disp" style="font-size:16px;font-style:italic;line-height:1.65;">{summary_html}</div>
             </div>
-            {stamp}
-            <div>{badges}</div>
-          </div>
-          <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.65;margin-top:10px;">"{preview}"</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+            """,
+            unsafe_allow_html=True,
+        )
+    elif not answer_error:
+        st.caption("Kaynaklardan güvenle özetlenebilecek bir cevap oluşturulamadı; aşağıdaki sonuçları inceleyin.")
+
+    groups = components.group_results_by_document(results)
+    st.caption(f"{len(groups)} belge · {len(results)} eşleşen parça")
+
+    for group in groups:
+        citation_indices = {c["_citation_index"] for c in group["chunks"]}
+        is_highlighted = st.session_state["highlighted_source"] in citation_indices
+        card_class = "result-card highlighted" if is_highlighted else "result-card"
+
+        badges = "".join(components.render_category_badge(c) for c in group["siniflar"])
+        stamp = components.render_confidence_stamp(group["guven"])
+        best_chunk = max(group["chunks"], key=lambda c: c.get("score", 0.0))
+        preview = components.highlight_terms(best_chunk["text"][:280], query)
+
+        chunk_scores = " · ".join(
+            f'[{c["_citation_index"]}] %{round(c.get("score", 0.0) * 100)}' for c in sorted(group["chunks"], key=lambda c: c["_citation_index"])
+        )
+
+        st.markdown(
+            f"""
+            <div class="{card_class}">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+                <div>
+                  <div style="font-weight:600;font-size:14px;">{html.escape(group['source_doc'])}</div>
+                  <div class="mono" style="font-size:10.5px;color:var(--text-tertiary);margin-top:1px;">{html.escape(chunk_scores)}</div>
+                </div>
+                {stamp}
+                <div>{badges}</div>
+              </div>
+              <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.65;margin-top:10px;">"{preview}"</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
