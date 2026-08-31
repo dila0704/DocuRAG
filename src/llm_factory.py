@@ -27,6 +27,7 @@ kurmali -- bkz. notebooks/12_multi_model_e2e_chain_test.ipynb.
 """
 from __future__ import annotations
 
+import json
 import logging
 import os
 import time
@@ -42,6 +43,68 @@ logger = logging.getLogger("llm_factory")
 logger.addHandler(logging.NullHandler())
 
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "settings.yaml"
+DEFAULT_USAGE_LOG_PATH = Path(__file__).resolve().parent.parent / "data" / "processed" / "usage_log.jsonl"
+
+# Yaklasik, elle bakimi yapilan liste fiyatlandirmasi (USD / 1M token). SADECE
+# maliyet/gecikme panelinde kaba bir tahmin gostermek icindir -- gercek
+# faturalandirma icin saglayicinin resmi fiyatlandirma sayfasina bakilmali.
+# Tabloda olmayan bir model icin maliyet UYDURULMAZ, _estimate_cost_usd() None
+# doner (DOC-30 Oncelik 3, dashboard.py).
+_PRICING_TABLE: dict[str, tuple[float, float]] = {
+    # model_name -> (giris $/1M token, cikis $/1M token)
+    "claude-sonnet-5": (3.0, 15.0),
+    "claude-opus-5": (15.0, 75.0),
+    "claude-haiku-4-5-20251001": (0.8, 4.0),
+    "gpt_4": (2.5, 10.0),
+    "gpt-4o": (2.5, 10.0),
+}
+
+
+def _estimate_cost_usd(model_name: str, input_tokens: int | None, output_tokens: int | None) -> float | None:
+    """model_name _PRICING_TABLE'da yoksa ya da token sayilari eksikse None doner
+    (sahte/uydurma bir maliyet gosterilmez)."""
+    if input_tokens is None or output_tokens is None:
+        return None
+    pricing = _PRICING_TABLE.get(model_name)
+    if pricing is None:
+        return None
+    input_price, output_price = pricing
+    return (input_tokens / 1_000_000) * input_price + (output_tokens / 1_000_000) * output_price
+
+
+def _append_usage_log(
+    provider: str,
+    model_name: str,
+    usage: dict | None,
+    cost_usd: float | None,
+    duration_s: float,
+    path: Path | None = None,
+) -> None:
+    """Basarili her generate() cagrisi icin data/processed/usage_log.jsonl'a
+    tek satir JSON append eder (maliyet/gecikme panelinin gercek veri kaynagi,
+    bkz. app/views/dashboard.py). Loglama basarisiz olursa (disk/izin sorunu)
+    ana LLM cagrisini KESMEZ, sadece uyari loglanir.
+
+    `path` verilmezse modul degiskeni DEFAULT_USAGE_LOG_PATH CAGRI ANINDA
+    okunur (fonksiyon imzasinda varsayilan olarak BAGLANMAZ) -- boylece
+    testler `monkeypatch.setattr(llm_factory, "DEFAULT_USAGE_LOG_PATH", ...)`
+    ile gercek veri dosyasina yazmadan izole calisabilir."""
+    path = path or DEFAULT_USAGE_LOG_PATH
+    record = {
+        "timestamp": time.time(),
+        "provider": provider,
+        "model_name": model_name,
+        "input_tokens": usage.get("input_tokens") if usage else None,
+        "output_tokens": usage.get("output_tokens") if usage else None,
+        "cost_usd": cost_usd,
+        "duration_s": duration_s,
+    }
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except OSError:
+        logger.warning("usage_log.jsonl yazilamadi (loglama atlandi, LLM cagrisi etkilenmez).", exc_info=True)
 
 
 class LLMClient(ABC):
@@ -117,10 +180,16 @@ class LLMClient(ABC):
                     continue
                 raise
 
+            duration = time.time() - t0
             logger.info(
                 "generate tamamlandi: provider=%s model=%s sure=%.2fsn yanit_uzunlugu=%d",
-                provider, self.model_name, time.time() - t0, len(text),
+                provider, self.model_name, duration, len(text),
             )
+            usage = getattr(self, "_last_usage", None)
+            cost_usd = _estimate_cost_usd(self.model_name, *(
+                (usage.get("input_tokens"), usage.get("output_tokens")) if usage else (None, None)
+            ))
+            _append_usage_log(provider, self.model_name, usage, cost_usd, duration)
             return text
 
         raise AssertionError("generate: erisilmemesi gereken kod yolu")  # pragma: no cover
@@ -168,6 +237,11 @@ class AnthropicClient(LLMClient):
                 response = self._client.messages.create(**request_kwargs)
             else:
                 raise
+        usage_obj = getattr(response, "usage", None)
+        self._last_usage = (
+            {"input_tokens": getattr(usage_obj, "input_tokens", None), "output_tokens": getattr(usage_obj, "output_tokens", None)}
+            if usage_obj is not None else None
+        )
         return "".join(block.text for block in response.content if block.type == "text")
 
 
@@ -190,6 +264,11 @@ class OpenAIClient(LLMClient):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message},
             ],
+        )
+        usage_obj = getattr(response, "usage", None)
+        self._last_usage = (
+            {"input_tokens": getattr(usage_obj, "prompt_tokens", None), "output_tokens": getattr(usage_obj, "completion_tokens", None)}
+            if usage_obj is not None else None
         )
         return response.choices[0].message.content or ""
 
@@ -303,6 +382,14 @@ class LocalHFClient(LLMClient):
             )
 
         generated_ids = output_ids[0][inputs["input_ids"].shape[1]:]
+        # Local calistirma icin USD maliyeti anlamsiz (kendi donanimimizda
+        # calisiyor) -- yine de token sayilarini loglariz (dashboard'daki
+        # gecikme/hacim karsilastirmasi icin), _estimate_cost_usd zaten
+        # _PRICING_TABLE'da olmayan modeller icin None doner.
+        self._last_usage = {
+            "input_tokens": int(inputs["input_ids"].shape[1]),
+            "output_tokens": int(generated_ids.shape[0]),
+        }
         return tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
 
 
@@ -315,11 +402,58 @@ _PROVIDER_REGISTRY: dict[str, type[LLMClient]] = {
 }
 
 
+def _merge_llm_settings(base: dict, override: dict) -> dict:
+    """`override`'daki alanlari `base` uzerine yazar; ic ice sozlukler (orn.
+    cloud_model) bir seviye derinlikte birlestirilir (override'da olmayan
+    alt-alanlar base'den korunur)."""
+    merged = dict(base)
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = {**merged[key], **value}
+        else:
+            merged[key] = value
+    return merged
+
+
 def load_llm_config(config_path: str | Path = DEFAULT_CONFIG_PATH) -> dict:
-    """settings.yaml'i okuyup `llm_settings` blogunu dondurur."""
+    """settings.yaml'i okuyup `llm_settings` blogunu dondurur.
+
+    Ayni dizinde bir 'settings.local.yaml' (bkz. save_llm_settings_override,
+    app/views/settings.py) varsa, icindeki alanlar base uzerine merge edilir.
+    Boylece Ayarlar sayfasindan yapilan degisiklikler devreye girer ama
+    settings.yaml'daki yorumlar/dokumantasyon HICBIR ZAMAN otomatik olarak
+    ezilip silinmez (override dosyasi tamamen ayri, yorumsuz, otomatik
+    uretilen bir dosyadir). Override dosyasi yoksa davranis tamamen aynidir.
+    """
     with open(config_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
-    return config["llm_settings"]
+    llm_settings = config["llm_settings"]
+
+    override_path = Path(config_path).parent / "settings.local.yaml"
+    if override_path.exists():
+        with open(override_path, "r", encoding="utf-8") as f:
+            override = yaml.safe_load(f) or {}
+        llm_settings = _merge_llm_settings(llm_settings, override)
+    return llm_settings
+
+
+def save_llm_settings_override(updates: dict, config_path: str | Path = DEFAULT_CONFIG_PATH) -> None:
+    """settings.yaml'in yanina, yorumsuz/otomatik-uretilmis bir
+    'settings.local.yaml' yazar -- base settings.yaml'a ASLA dokunulmaz
+    (Turkce yorumlar boylece hicbir zaman kaybolmaz). `updates` ornegin
+    {"active_mode": "local", "local_model": {"provider": "huggingface",
+    "model_name": "..."}} seklinde olabilir.
+
+    Uygulamanin yeniden baslatilmasi GEREKMEZ: get_llm_client() her cagrida
+    load_llm_config() ile config'i taze okur (bkz. classifier.classify_document,
+    answer.generate_grounded_answer).
+    """
+    override_path = Path(config_path).parent / "settings.local.yaml"
+    with open(override_path, "w", encoding="utf-8") as f:
+        f.write("# Bu dosya Ayarlar sayfasindan otomatik uretildi, elle duzenlemeyin.\n")
+        f.write("# settings.yaml'in ustune SADECE burada tanimli alanlari gecici olarak ezer.\n")
+        f.write("# Varsayilana donmek icin bu dosyayi silin.\n")
+        yaml.safe_dump(updates, f, allow_unicode=True, sort_keys=False)
 
 
 def get_llm_client(llm_settings: dict | None = None) -> LLMClient:

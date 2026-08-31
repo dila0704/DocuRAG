@@ -147,3 +147,53 @@ def test_load_index_migrates_legacy_flat_index_and_list_metadata(tmp_path):
     # Migrasyon sonrasi CRUD calisir olmali.
     index, metadata = vs.delete_by_source_doc(index, metadata, "a.png")
     assert index.ntotal == 1
+
+
+def test_group_latest_by_source_doc_picks_most_recent_ingested_at():
+    metadata = {
+        0: {"source_doc": "a.png", "ingested_at": "2026-01-01T00:00:00+00:00", "guven": 0.5},
+        1: {"source_doc": "a.png", "ingested_at": "2026-01-02T00:00:00+00:00", "guven": 0.9},
+        2: {"source_doc": "b.png", "guven": 0.7},
+    }
+    grouped = vs.group_latest_by_source_doc(metadata)
+    assert set(grouped) == {"a.png", "b.png"}
+    assert grouped["a.png"]["guven"] == 0.9  # en guncel kayit secilmeli
+
+
+def test_group_latest_by_source_doc_empty_metadata_returns_empty_dict():
+    assert vs.group_latest_by_source_doc({}) == {}
+
+
+def test_search_metadata_filter_none_matches_old_behavior():
+    # Regresyon testi: metadata_filter parametresi eklenmeden ONCE search()
+    # nasil davraniyorsa, None verildiginde AYNEN oyle davranmali.
+    chunks = [_chunk("fatura metni", "a.png", seed=1), _chunk("sozlesme metni", "b.png", seed=2)]
+    index, metadata = vs.build_index(chunks)
+    query_embedding = _chunk("x", "q", seed=1)["embedding"]
+
+    without_param = vs.search(index, metadata, query_embedding, top_k=2)
+    with_none = vs.search(index, metadata, query_embedding, top_k=2, metadata_filter=None)
+    assert without_param == with_none
+
+
+def test_search_with_metadata_filter_overfetches_and_filters():
+    chunks = [_chunk(f"belge {i}", f"doc_{i}.png", seed=i) for i in range(5)]
+    index, metadata = vs.build_index(chunks)
+    query_embedding = _chunk("x", "q", seed=0)["embedding"]
+
+    only_even = vs.search(
+        index, metadata, query_embedding, top_k=2,
+        metadata_filter=lambda m: m["source_doc"] in {"doc_0.png", "doc_2.png", "doc_4.png"},
+    )
+    assert len(only_even) == 2
+    assert all(r["source_doc"] in {"doc_0.png", "doc_2.png", "doc_4.png"} for r in only_even)
+
+
+def test_search_with_metadata_filter_fewer_matches_than_top_k():
+    chunks = [_chunk(f"belge {i}", f"doc_{i}.png", seed=i) for i in range(3)]
+    index, metadata = vs.build_index(chunks)
+    query_embedding = _chunk("x", "q", seed=0)["embedding"]
+
+    results = vs.search(index, metadata, query_embedding, top_k=5, metadata_filter=lambda m: m["source_doc"] == "doc_1.png")
+    assert len(results) == 1
+    assert results[0]["source_doc"] == "doc_1.png"

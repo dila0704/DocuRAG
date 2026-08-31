@@ -41,6 +41,16 @@ def _chunk(text, source_doc, score, **extra):
     return {"text": text, "source_doc": source_doc, "score": score, **extra}
 
 
+def test_format_chunk_score_cosine_shows_percentage():
+    label = components.format_chunk_score({"_citation_index": 1, "score": 0.873})
+    assert label == "[1] %87"
+
+
+def test_format_chunk_score_rrf_shows_raw_score_not_percentage():
+    label = components.format_chunk_score({"_citation_index": 2, "score": 0.0325, "score_type": "rrf"})
+    assert label == "[2] RRF 0.033"
+
+
 def test_group_results_by_document_groups_same_source():
     chunks = [
         _chunk("a1", "a.png", 0.9, _citation_index=1),
@@ -93,6 +103,92 @@ def test_render_class_distribution_donut_percentages_sum_reasonable():
     assert "%50" in html
     assert "Fatura" in html
     assert "Talep formu" in html
+
+
+def test_render_document_graph_svg_empty_graph_shows_message():
+    import networkx as nx
+    html_out = components.render_document_graph_svg(nx.Graph())
+    assert "Henüz" in html_out
+
+
+def test_render_document_graph_svg_renders_node_and_edge():
+    import networkx as nx
+    graph = nx.Graph()
+    graph.add_edge("a.png", "b.png", weight=2, shared=["Dila Alpay"])
+    html_out = components.render_document_graph_svg(graph)
+    assert html_out.count("<circle") == 2
+    assert "<line" in html_out
+    assert "a.png" in html_out and "b.png" in html_out
+
+
+def test_render_latency_bars_empty_shows_message():
+    assert "Henüz" in components.render_latency_bars({})
+
+
+def test_render_latency_bars_scales_widest_bar_to_100_percent():
+    html_out = components.render_latency_bars({"AnthropicClient": 2.0, "LocalHFClient": 1.0})
+    assert "AnthropicClient" in html_out and "LocalHFClient" in html_out
+    assert "width:100.0%" in html_out
+    assert "width:50.0%" in html_out
+
+
+class _FakePlaceholder:
+    def __init__(self):
+        self.calls: list[str] = []
+
+    def markdown(self, body, **kwargs):
+        self.calls.append(body)
+
+
+def test_stream_sentences_reveals_sentences_progressively():
+    placeholder = _FakePlaceholder()
+    components.stream_sentences(["Birinci.", "İkinci.", "Üçüncü."], placeholder, delay=0)
+
+    assert len(placeholder.calls) == 3
+    assert placeholder.calls[0] == "Birinci."
+    assert placeholder.calls[1] == "Birinci. İkinci."
+    assert placeholder.calls[2] == "Birinci. İkinci. Üçüncü."
+
+
+def test_stream_sentences_applies_wrap_function():
+    placeholder = _FakePlaceholder()
+    components.stream_sentences(["x"], placeholder, wrap=lambda body: f"<div>{body}</div>", delay=0)
+    assert placeholder.calls == ["<div>x</div>"]
+
+
+def test_stream_sentences_empty_list_does_not_call_placeholder():
+    placeholder = _FakePlaceholder()
+    components.stream_sentences([], placeholder, delay=0)
+    assert placeholder.calls == []
+
+
+def test_search_results_to_dataframe_has_expected_columns_and_rows():
+    results = [
+        {"source_doc": "a.png", "score": 0.9, "score_type": "cosine", "siniflar": ["fatura"], "guven": 0.8, "text": "metin"},
+    ]
+    df = components.search_results_to_dataframe(results)
+    assert list(df.columns) == ["belge", "skor", "skor_turu", "siniflar", "guven", "metin"]
+    assert len(df) == 1
+    assert df.iloc[0]["belge"] == "a.png"
+
+
+def test_search_results_to_dataframe_empty_list():
+    df = components.search_results_to_dataframe([])
+    assert df.empty
+
+
+def test_render_printable_report_html_includes_print_color_adjust_and_documents():
+    documents = {"a.png": {"siniflar": ["fatura"], "guven": 0.9, "ingested_at": None}}
+    html_out = components.render_printable_report_html(documents, Counter({"fatura": 1}))
+    assert "-webkit-print-color-adjust: exact" in html_out
+    assert "a.png" in html_out
+    assert "fatura" in html_out.lower()
+
+
+def test_render_printable_report_html_includes_usage_summary_when_given():
+    html_out = components.render_printable_report_html({}, Counter(), {"total_calls": 5, "total_cost": 1.2345, "avg_duration": 0.5})
+    assert "Model Kullanımı" in html_out
+    assert "1.2345" in html_out
 
 
 def test_format_relative_time_missing_returns_dash():

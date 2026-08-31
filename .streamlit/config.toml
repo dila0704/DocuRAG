@@ -1,7 +1,11 @@
 [theme]
-base = "light"
-primaryColor = "#0E5F55"
-backgroundColor = "#F7F4EE"
-secondaryBackgroundColor = "#F0EBE1"
-textColor = "#1C1A17"
+# Gece lacivert + buz mavisi/gumus paleti -- bkz. app/styles.py :root
+# token'lari (ayni degerler, burada Streamlit'in NATIVE bilesenlerini --
+# buton, input, sidebar chrome -- temalandirmak icin tekrarlaniyor; injected
+# CSS bunlarin tumunu override edemiyor).
+base = "dark"
+primaryColor = "#7DD3FC"
+backgroundColor = "#0A1550"
+secondaryBackgroundColor = "#101C63"
+textColor = "#F2F3FC"
 font = "sans-serif"

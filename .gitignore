@@ -1,6 +1,10 @@
 # Çevresel Değişkenler (Gizli API Anahtarları)
 .env
 
+# Ayarlar sayfasının (app/views/settings.py) makineye özel, otomatik ürettiği
+# override dosyası — settings.yaml'a asla yazılmaz, versiyon kontrolüne girmez.
+config/settings.local.yaml
+
 # Sanal Ortam (Çok yer kaplar, herkes kendi kurmalıdır)
 venv/
 env/
@@ -8,6 +12,9 @@ env/
 # Python Önbellek Dosyaları
 __pycache__/
 *.pyc
+
+# pytest-cov'un ürettiği ikili coverage veritabanı (pytest --cov calistirilinca olusur)
+.coverage
 
 # Jupyter Notebook Kontrol Dosyaları
 .ipynb_checkpoints/

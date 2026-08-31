@@ -1,7 +1,10 @@
+import json
+
 import anthropic
 import httpx
 import pytest
 
+import llm_factory
 from llm_factory import AnthropicClient, LLMClient, _PROVIDER_REGISTRY, get_llm_client
 
 
@@ -179,3 +182,135 @@ def test_anthropic_client_reraises_unrelated_bad_request_error():
     with pytest.raises(anthropic.BadRequestError):
         client._generate("sys", "user", max_tokens=100, temperature=0.0)
     assert len(fake_messages.calls) == 1
+
+
+def _read_usage_log(path) -> list[dict]:
+    if not path.exists():
+        return []
+    with open(path, encoding="utf-8") as f:
+        return [json.loads(line) for line in f if line.strip()]
+
+
+class _UsageRecordingClient(LLMClient):
+    model_name = "claude-sonnet-5"
+
+    def _generate(self, system_prompt, user_message, max_tokens, temperature):
+        self._last_usage = {"input_tokens": 100, "output_tokens": 50}
+        return "ok"
+
+
+def test_generate_appends_usage_log_on_success(tmp_path, monkeypatch):
+    log_path = tmp_path / "usage_log.jsonl"
+    monkeypatch.setattr(llm_factory, "DEFAULT_USAGE_LOG_PATH", log_path)
+
+    _UsageRecordingClient().generate("sys", "user")
+
+    records = _read_usage_log(log_path)
+    assert len(records) == 1
+    assert records[0]["provider"] == "_UsageRecordingClient"
+    assert records[0]["model_name"] == "claude-sonnet-5"
+    assert records[0]["input_tokens"] == 100
+    assert records[0]["output_tokens"] == 50
+    assert records[0]["cost_usd"] == pytest.approx(100 / 1_000_000 * 3.0 + 50 / 1_000_000 * 15.0)
+    assert records[0]["duration_s"] >= 0
+
+
+def test_generate_logs_none_usage_for_client_without_last_usage(tmp_path, monkeypatch):
+    log_path = tmp_path / "usage_log.jsonl"
+    monkeypatch.setattr(llm_factory, "DEFAULT_USAGE_LOG_PATH", log_path)
+
+    class _NoUsageClient(LLMClient):
+        model_name = "fake"
+
+        def _generate(self, system_prompt, user_message, max_tokens, temperature):
+            return "ok"
+
+    _NoUsageClient().generate("sys", "user")
+
+    records = _read_usage_log(log_path)
+    assert len(records) == 1
+    assert records[0]["input_tokens"] is None
+    assert records[0]["cost_usd"] is None
+
+
+def test_generate_does_not_raise_if_usage_logging_fails(tmp_path, monkeypatch):
+    # Var olmayan bir dizinin ALTINDA (dosya olarak) bir yol vererek yazmayi
+    # kasitli basarisiz kilariz; generate() yine de metni dondurmeli.
+    unwritable = tmp_path / "not_a_directory" / "usage_log.jsonl"
+    (tmp_path / "not_a_directory").write_text("bu bir dosya, dizin degil")
+    monkeypatch.setattr(llm_factory, "DEFAULT_USAGE_LOG_PATH", unwritable)
+
+    result = _UsageRecordingClient().generate("sys", "user")
+    assert result == "ok"
+
+
+def test_estimate_cost_returns_none_for_unknown_model():
+    assert llm_factory._estimate_cost_usd("bilinmeyen-model", 100, 50) is None
+
+
+def test_estimate_cost_returns_none_when_tokens_missing():
+    assert llm_factory._estimate_cost_usd("claude-sonnet-5", None, None) is None
+
+
+def test_estimate_cost_computes_known_model():
+    cost = llm_factory._estimate_cost_usd("claude-sonnet-5", 1_000_000, 1_000_000)
+    assert cost == pytest.approx(3.0 + 15.0)
+
+
+def _write_yaml(path, data):
+    import yaml
+
+    with open(path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(data, f, allow_unicode=True)
+
+
+def test_load_llm_config_without_override_matches_base(tmp_path):
+    config_path = tmp_path / "settings.yaml"
+    _write_yaml(config_path, {"llm_settings": {"active_mode": "cloud", "cloud_model": {"provider": "anthropic", "model_name": "claude-sonnet-5"}}})
+
+    result = llm_factory.load_llm_config(config_path)
+    assert result["active_mode"] == "cloud"
+    assert result["cloud_model"]["model_name"] == "claude-sonnet-5"
+
+
+def test_load_llm_config_merges_local_override(tmp_path):
+    config_path = tmp_path / "settings.yaml"
+    _write_yaml(config_path, {"llm_settings": {
+        "active_mode": "cloud",
+        "cloud_model": {"provider": "anthropic", "model_name": "claude-sonnet-5"},
+        "local_model": {"provider": "huggingface", "model_name": "meta-llama/Meta-Llama-3-8B-Instruct"},
+    }})
+    _write_yaml(tmp_path / "settings.local.yaml", {"active_mode": "local"})
+
+    result = llm_factory.load_llm_config(config_path)
+    assert result["active_mode"] == "local"
+    # override edilmeyen alanlar (cloud_model) korunmali
+    assert result["cloud_model"]["model_name"] == "claude-sonnet-5"
+
+
+def test_load_llm_config_merges_nested_dict_fields(tmp_path):
+    config_path = tmp_path / "settings.yaml"
+    _write_yaml(config_path, {"llm_settings": {
+        "active_mode": "cloud",
+        "cloud_model": {"provider": "anthropic", "model_name": "claude-sonnet-5"},
+    }})
+    _write_yaml(tmp_path / "settings.local.yaml", {"cloud_model": {"model_name": "gpt_4", "provider": "openai"}})
+
+    result = llm_factory.load_llm_config(config_path)
+    assert result["cloud_model"] == {"provider": "openai", "model_name": "gpt_4"}
+
+
+def test_save_llm_settings_override_writes_only_override_file(tmp_path):
+    config_path = tmp_path / "settings.yaml"
+    base_content = "llm_settings:\n  active_mode: cloud\n  cloud_model:\n    provider: anthropic\n    model_name: claude-sonnet-5\n# elle yazilmis bir yorum\n"
+    config_path.write_text(base_content, encoding="utf-8")
+
+    llm_factory.save_llm_settings_override({"active_mode": "local"}, config_path=config_path)
+
+    # base dosya HIC degismemis olmali (yorum dahil)
+    assert config_path.read_text(encoding="utf-8") == base_content
+    override_path = tmp_path / "settings.local.yaml"
+    assert override_path.exists()
+
+    result = llm_factory.load_llm_config(config_path)
+    assert result["active_mode"] == "local"

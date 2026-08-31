@@ -14,16 +14,16 @@ tarafindan elenir (bkz. _enforce_grounding). Boylece "kaynagi olmayan
 hicbir cumle ozete girmemeli" kurali, prompt'a degil dogrulanabilir bir
 son-isleme adimina dayanir.
 
-classify_document() (bkz. classifier.py) ile ayni JSON parse/retry
-desenini kullanir; iki modul de kucuk oldugu icin bu yardimci fonksiyon
-ortak bir modulde degil, burada kendi kopyasi olarak tutuldu.
+classify_document() (bkz. classifier.py) ile ayni JSON parse/retry desenini
+kullanir; bu ortak mantik src/llm_json_utils.py'de tutulur (DOC-30 B1
+sirasinda ucuncu bir kopya acilmadan once cikarildi).
 """
 from __future__ import annotations
 
-import json
 import logging
 
 from llm_factory import LLMClient, get_llm_client
+from llm_json_utils import generate_and_parse_json as _generate_and_parse_json
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -61,56 +61,6 @@ def _format_sources_block(chunks: list[dict]) -> str:
     for i, chunk in enumerate(chunks, start=1):
         lines.append(f"[{i}] (kaynak: {chunk.get('source_doc', 'bilinmiyor')}) {chunk['text']}")
     return "\n\n".join(lines)
-
-
-def _extract_json(text: str) -> dict:
-    cleaned = text.strip()
-    if cleaned.startswith("```"):
-        cleaned = cleaned.strip("`")
-        if cleaned.startswith("json"):
-            cleaned = cleaned[4:]
-        cleaned = cleaned.strip()
-    return json.loads(cleaned)
-
-
-def _generate_and_parse_json(
-    client: LLMClient,
-    system_prompt: str,
-    user_message: str,
-    max_tokens: int,
-    temperature: float,
-    max_json_attempts: int,
-) -> dict:
-    """classifier._generate_and_parse_json ile ayni desen: gecerli JSON
-    alinana kadar (en fazla max_json_attempts kez) modelden duzeltmesini
-    ister."""
-    current_user_message = user_message
-    last_error: json.JSONDecodeError | None = None
-
-    for attempt in range(max_json_attempts):
-        raw_text = client.generate(
-            system_prompt=system_prompt,
-            user_message=current_user_message,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
-        try:
-            return _extract_json(raw_text)
-        except json.JSONDecodeError as exc:
-            last_error = exc
-            logger.warning(
-                "generate_grounded_answer: gecersiz JSON yaniti (deneme %d/%d): %s",
-                attempt + 1, max_json_attempts, exc,
-            )
-            current_user_message = (
-                f"{user_message}\n\n---\n"
-                f"Onceki yanitin gecerli bir JSON nesnesi degildi (hata: {exc}). "
-                f"Onceki yanitin: {raw_text!r}\n"
-                "Lutfen SADECE gecerli bir JSON nesnesi dondur, baska hicbir metin ekleme."
-            )
-
-    logger.error("generate_grounded_answer: %d denemeden sonra gecerli JSON alinamadi.", max_json_attempts)
-    raise last_error
 
 
 def _enforce_grounding(sentences: object, num_sources: int) -> list[dict]:
@@ -193,6 +143,7 @@ def generate_grounded_answer(
         max_tokens=max_tokens,
         temperature=temperature,
         max_json_attempts=max_json_attempts,
+        caller_name="generate_grounded_answer",
     )
 
     sentences = _enforce_grounding(result.get("sentences"), num_sources=len(chunks))

@@ -1,0 +1,8 @@
+{"timestamp": 1788188355.537763, "provider": "AnthropicClient", "model_name": "claude-sonnet-5", "input_tokens": 337, "output_tokens": 256, "cost_usd": 0.004850999999999999, "duration_s": 6.938877582550049}
+{"timestamp": 1788188988.3927634, "provider": "AnthropicClient", "model_name": "claude-sonnet-5", "input_tokens": 840, "output_tokens": 120, "cost_usd": 0.00432, "duration_s": 2.816420793533325}
+{"timestamp": 1788188991.309725, "provider": "AnthropicClient", "model_name": "claude-sonnet-5", "input_tokens": 646, "output_tokens": 95, "cost_usd": 0.003363, "duration_s": 2.8964078426361084}
+{"timestamp": 1788189776.6258996, "provider": "AnthropicClient", "model_name": "claude-sonnet-5", "input_tokens": 839, "output_tokens": 126, "cost_usd": 0.004407, "duration_s": 4.284286260604858}
+{"timestamp": 1788189789.680159, "provider": "AnthropicClient", "model_name": "claude-sonnet-5", "input_tokens": 645, "output_tokens": 82, "cost_usd": 0.003165, "duration_s": 13.026540517807007}
+{"timestamp": 1788191179.2908888, "provider": "AnthropicClient", "model_name": "claude-sonnet-5", "input_tokens": 1261, "output_tokens": 166, "cost_usd": 0.006273, "duration_s": 4.483408451080322}
+{"timestamp": 1788191230.9403973, "provider": "AnthropicClient", "model_name": "claude-sonnet-5", "input_tokens": 1261, "output_tokens": 190, "cost_usd": 0.006633, "duration_s": 4.873735666275024}
+{"timestamp": 1788194233.2813997, "provider": "AnthropicClient", "model_name": "claude-sonnet-5", "input_tokens": 1261, "output_tokens": 140, "cost_usd": 0.005882999999999999, "duration_s": 3.275836944580078}

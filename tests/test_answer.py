@@ -3,18 +3,6 @@ import json
 import pytest
 
 import answer
-from llm_factory import LLMClient
-
-
-class FakeClient(LLMClient):
-    def __init__(self, responses, model_name: str = "fake"):
-        self.model_name = model_name
-        self._responses = list(responses)
-        self.calls: list[dict] = []
-
-    def _generate(self, system_prompt, user_message, max_tokens, temperature):
-        self.calls.append({"system_prompt": system_prompt, "user_message": user_message, "temperature": temperature})
-        return self._responses.pop(0)
 
 
 def _chunks(n=2):
@@ -28,16 +16,16 @@ def _response(sentences):
     return json.dumps({"sentences": sentences}, ensure_ascii=False)
 
 
-def test_empty_chunks_returns_ungrounded_without_calling_client():
-    client = FakeClient([])
+def test_empty_chunks_returns_ungrounded_without_calling_client(fake_llm_client):
+    client = fake_llm_client([])
     result = answer.generate_grounded_answer("sorgu", [], client=client)
     assert result == {"grounded": False, "sentences": [], "chunks": []}
     assert client.calls == []
 
 
-def test_happy_path_all_sentences_grounded():
+def test_happy_path_all_sentences_grounded(fake_llm_client):
     chunks = _chunks(2)
-    client = FakeClient([_response([
+    client = fake_llm_client([_response([
         {"text": "Birinci cumle.", "sources": [1]},
         {"text": "Ikinci cumle.", "sources": [1, 2]},
     ])])
@@ -49,9 +37,9 @@ def test_happy_path_all_sentences_grounded():
     assert result["chunks"] == chunks
 
 
-def test_sentence_with_empty_sources_is_dropped():
+def test_sentence_with_empty_sources_is_dropped(fake_llm_client):
     chunks = _chunks(2)
-    client = FakeClient([_response([
+    client = fake_llm_client([_response([
         {"text": "Kaynaksiz cumle.", "sources": []},
         {"text": "Kaynakli cumle.", "sources": [2]},
     ])])
@@ -62,9 +50,9 @@ def test_sentence_with_empty_sources_is_dropped():
     assert result["sentences"][0]["text"] == "Kaynakli cumle."
 
 
-def test_sentence_with_out_of_range_source_is_dropped():
+def test_sentence_with_out_of_range_source_is_dropped(fake_llm_client):
     chunks = _chunks(2)
-    client = FakeClient([_response([
+    client = fake_llm_client([_response([
         {"text": "Uydurma kaynakli cumle.", "sources": [5]},
     ])])
     result = answer.generate_grounded_answer("sorgu", chunks, client=client)
@@ -73,55 +61,55 @@ def test_sentence_with_out_of_range_source_is_dropped():
     assert result["sentences"] == []
 
 
-def test_sentence_missing_sources_key_is_dropped():
+def test_sentence_missing_sources_key_is_dropped(fake_llm_client):
     chunks = _chunks(1)
-    client = FakeClient([_response([{"text": "sources alani yok."}])])
+    client = fake_llm_client([_response([{"text": "sources alani yok."}])])
     result = answer.generate_grounded_answer("sorgu", chunks, client=client)
     assert result["sentences"] == []
 
 
-def test_all_sentences_invalid_returns_ungrounded():
+def test_all_sentences_invalid_returns_ungrounded(fake_llm_client):
     chunks = _chunks(1)
-    client = FakeClient([_response([{"text": "x", "sources": []}])])
+    client = fake_llm_client([_response([{"text": "x", "sources": []}])])
     result = answer.generate_grounded_answer("sorgu", chunks, client=client)
     assert result["grounded"] is False
     assert result["sentences"] == []
 
 
-def test_model_returns_no_answer_when_instructed():
+def test_model_returns_no_answer_when_instructed(fake_llm_client):
     chunks = _chunks(1)
-    client = FakeClient([_response([])])
+    client = fake_llm_client([_response([])])
     result = answer.generate_grounded_answer("alakasiz sorgu", chunks, client=client)
     assert result == {"grounded": False, "sentences": [], "chunks": chunks}
 
 
-def test_malformed_json_is_retried_and_recovers():
+def test_malformed_json_is_retried_and_recovers(fake_llm_client):
     chunks = _chunks(1)
-    client = FakeClient(["gecersiz json", _response([{"text": "tamam.", "sources": [1]}])])
+    client = fake_llm_client(["gecersiz json", _response([{"text": "tamam.", "sources": [1]}])])
     result = answer.generate_grounded_answer("sorgu", chunks, client=client)
 
     assert result["grounded"] is True
     assert len(client.calls) == 2
 
 
-def test_persistent_malformed_json_raises_after_max_attempts():
+def test_persistent_malformed_json_raises_after_max_attempts(fake_llm_client):
     chunks = _chunks(1)
-    client = FakeClient(["bozuk-1", "bozuk-2"])
+    client = fake_llm_client(["bozuk-1", "bozuk-2"])
     with pytest.raises(json.JSONDecodeError):
         answer.generate_grounded_answer("sorgu", chunks, client=client, max_json_attempts=2)
     assert len(client.calls) == 2
 
 
-def test_default_temperature_is_zero():
+def test_default_temperature_is_zero(fake_llm_client):
     chunks = _chunks(1)
-    client = FakeClient([_response([{"text": "x.", "sources": [1]}])])
+    client = fake_llm_client([_response([{"text": "x.", "sources": [1]}])])
     answer.generate_grounded_answer("sorgu", chunks, client=client)
     assert client.calls[0]["temperature"] == 0.0
 
 
-def test_sources_block_includes_source_doc_and_index():
+def test_sources_block_includes_source_doc_and_index(fake_llm_client):
     chunks = _chunks(2)
-    client = FakeClient([_response([{"text": "x.", "sources": [1]}])])
+    client = fake_llm_client([_response([{"text": "x.", "sources": [1]}])])
     answer.generate_grounded_answer("sorgu", chunks, client=client)
     system_prompt = client.calls[0]["system_prompt"]
     assert "[1]" in system_prompt and "doc_1.png" in system_prompt

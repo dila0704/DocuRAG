@@ -3,7 +3,9 @@
     "chunk_size": 150,
     "chunk_overlap": 20,
     "top_k": 3,
-    "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2"
+    "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
+    "retrieval_mode": "hybrid (BM25+dense, RRF)",
+    "note": "DOC-30 A1 sonrasi hibrit arama ile yeniden uretildi; skor artik RRF skoru (cosine degil)."
   },
   "queries": [
     {
@@ -11,17 +13,17 @@
       "tip": "dogal",
       "beklenen_belge": "test_talep_01.png",
       "top1_belge": "test_talep_05.png",
-      "top1_skor": 0.5871,
+      "top1_skor": 0.0328,
       "hit@1": false,
       "hit@3": true,
-      "rank": 3
+      "rank": 2
     },
     {
       "sorgu": "Log takibini kod yazimiyla eszamanli yurutmek isteyen kisi kim?",
       "tip": "anlamsal",
       "beklenen_belge": "test_talep_01.png",
       "top1_belge": "test_talep_01.png",
-      "top1_skor": 0.5872,
+      "top1_skor": 0.0328,
       "hit@1": true,
       "hit@3": true,
       "rank": 1
@@ -31,7 +33,7 @@
       "tip": "dogal",
       "beklenen_belge": "test_talep_02.png",
       "top1_belge": "test_talep_02.png",
-      "top1_skor": 0.5488,
+      "top1_skor": 0.0328,
       "hit@1": true,
       "hit@3": true,
       "rank": 1
@@ -40,18 +42,18 @@
       "sorgu": "Cihazinin performansi dustugu icin verimliligi etkilenen calisan kim?",
       "tip": "anlamsal",
       "beklenen_belge": "test_talep_02.png",
-      "top1_belge": "test_talep_02.png",
-      "top1_skor": 0.5584,
-      "hit@1": true,
+      "top1_belge": "test_talep_05.png",
+      "top1_skor": 0.0325,
+      "hit@1": false,
       "hit@3": true,
-      "rank": 1
+      "rank": 2
     },
     {
       "sorgu": "Klavye degisikligi isteyen kim?",
       "tip": "dogal",
       "beklenen_belge": "test_talep_03.png",
       "top1_belge": "test_talep_03.png",
-      "top1_skor": 0.5096,
+      "top1_skor": 0.0328,
       "hit@1": true,
       "hit@3": true,
       "rank": 1
@@ -61,7 +63,7 @@
       "tip": "anlamsal",
       "beklenen_belge": "test_talep_03.png",
       "top1_belge": "test_talep_03.png",
-      "top1_skor": 0.4681,
+      "top1_skor": 0.0328,
       "hit@1": true,
       "hit@3": true,
       "rank": 1
@@ -71,7 +73,7 @@
       "tip": "dogal",
       "beklenen_belge": "test_talep_04.png",
       "top1_belge": "test_talep_04.png",
-      "top1_skor": 0.5076,
+      "top1_skor": 0.0328,
       "hit@1": true,
       "hit@3": true,
       "rank": 1
@@ -80,18 +82,18 @@
       "sorgu": "Muhasebe departmaninda ortak kullanilan bir cihaz bozulmus, kim talep acti?",
       "tip": "anlamsal",
       "beklenen_belge": "test_talep_04.png",
-      "top1_belge": "test_talep_01.png",
-      "top1_skor": 0.4246,
-      "hit@1": false,
+      "top1_belge": "test_talep_04.png",
+      "top1_skor": 0.032,
+      "hit@1": true,
       "hit@3": true,
-      "rank": 3
+      "rank": 1
     },
     {
       "sorgu": "Ek ekran talebi olan kim?",
       "tip": "dogal",
       "beklenen_belge": "test_talep_05.png",
       "top1_belge": "test_talep_05.png",
-      "top1_skor": 0.5994,
+      "top1_skor": 0.0328,
       "hit@1": true,
       "hit@3": true,
       "rank": 1
@@ -101,7 +103,7 @@
       "tip": "anlamsal",
       "beklenen_belge": "test_talep_05.png",
       "top1_belge": "test_talep_05.png",
-      "top1_skor": 0.7114,
+      "top1_skor": 0.0328,
       "hit@1": true,
       "hit@3": true,
       "rank": 1
@@ -109,6 +111,6 @@
   ],
   "hit_at_1": 0.8,
   "hit_at_3": 1.0,
-  "mrr": 0.8666666666666666,
+  "mrr": 0.9,
   "n_queries": 10
 }

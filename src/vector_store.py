@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from typing import Callable
 
 import faiss
 import numpy as np
@@ -241,13 +242,44 @@ def load_index(path: str) -> tuple[faiss.IndexIDMap, dict[int, dict]]:
     return index, metadata
 
 
+def group_latest_by_source_doc(metadata: dict[int, dict]) -> dict[str, dict]:
+    """metadata'daki chunk'lari source_doc'a gore gruplayip her belge icin en
+    guncel (en buyuk "ingested_at") kaydi dondurur.
+
+    app/views/dashboard.py, app/views/inventory.py ve app/api.py'de tekrarlanan
+    ayni gruplama dongusunden cikarildi (DRY) -- hem Streamlit hem FastAPI
+    tarafinin ayni "belge envanteri" mantigini kullanmasi icin src/ katmaninda.
+    "ingested_at" alani olmayan (DOC-30 oncesi indekslenmis) kayitlar bos
+    string ile karsilastirilir, boylece her zaman bir kayit secilir.
+    """
+    documents: dict[str, dict] = {}
+    for m in metadata.values():
+        doc = m.get("source_doc", "bilinmiyor")
+        if doc not in documents or m.get("ingested_at", "") > documents[doc].get("ingested_at", ""):
+            documents[doc] = m
+    return documents
+
+
+# metadata_filter verildiginde, top_k'nin bu kati kadar aday cekilip filtre
+# uygulanir (search.py'deki eski ALL_CHUNKS_TOP_K=1000 "hepsini getir filtrele"
+# hack'inin resmilesmis hali) -- amac, filtreden gecen yeterince aday bulmak.
+_METADATA_FILTER_OVERFETCH_FACTOR = 20
+
+
 def search(
     index: faiss.Index,
     metadata: dict[int, dict],
     query_embedding: list[float],
     top_k: int = 5,
+    metadata_filter: Callable[[dict], bool] | None = None,
 ) -> list[dict]:
     """En yakin top_k chunk'i, en benzerden en az benzere dogru dondurur.
+
+    Args:
+        metadata_filter: verilirse, SADECE bu fonksiyonun True dondugu
+            chunk'lar sonuca girer (orn. field_extractor.build_amount_range_filter()).
+            None (varsayilan) ise davranis TAMAMEN eskisiyle aynidir -- bu
+            parametre geriye donuk uyumluluk icin opsiyonel tutuldu.
 
     Returns:
         [{"score": float, **chunk_metadata}, ...]
@@ -255,13 +287,22 @@ def search(
     if index.ntotal == 0 or top_k <= 0:
         return []
 
+    fetch_k = top_k
+    if metadata_filter is not None:
+        fetch_k = min(index.ntotal, max(top_k * _METADATA_FILTER_OVERFETCH_FACTOR, top_k))
+
     query_vector = np.array([query_embedding], dtype="float32")
-    scores, indices = index.search(query_vector, min(top_k, index.ntotal))
+    scores, indices = index.search(query_vector, min(fetch_k, index.ntotal))
 
     results = []
     for score, idx in zip(scores[0], indices[0]):
         if idx == -1:
             continue
-        results.append({"score": float(score), **metadata[int(idx)]})
+        chunk_metadata = metadata[int(idx)]
+        if metadata_filter is not None and not metadata_filter(chunk_metadata):
+            continue
+        results.append({"score": float(score), **chunk_metadata})
+        if len(results) >= top_k:
+            break
     logger.info("search: top_k=%d istendi, %d sonuc donduruldu.", top_k, len(results))
     return results

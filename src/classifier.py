@@ -24,10 +24,10 @@ yapilabilir.
 """
 from __future__ import annotations
 
-import json
 import logging
 
 from llm_factory import LLMClient, get_llm_client
+from llm_json_utils import generate_and_parse_json as _generate_and_parse_json
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -77,56 +77,6 @@ KURALLAR:
 """
 
 USER_INSTRUCTION = "Bu belge metnini yukaridaki semaya gore siniflandir ve JSON olarak dondur."
-
-
-def _extract_json(text: str) -> dict:
-    cleaned = text.strip()
-    if cleaned.startswith("```"):
-        cleaned = cleaned.strip("`")
-        if cleaned.startswith("json"):
-            cleaned = cleaned[4:]
-        cleaned = cleaned.strip()
-    return json.loads(cleaned)
-
-
-def _generate_and_parse_json(
-    client: LLMClient,
-    system_prompt: str,
-    user_message: str,
-    max_tokens: int,
-    temperature: float,
-    max_json_attempts: int,
-) -> dict:
-    """client.generate() cagirip yanit gecerli JSON olana kadar (en fazla
-    max_json_attempts kez) dener; bozuk yanit alinirsa bir sonraki denemede
-    modelden hatayi duzeltmesi istenir (DOC-31)."""
-    current_user_message = user_message
-    last_error: json.JSONDecodeError | None = None
-
-    for attempt in range(max_json_attempts):
-        raw_text = client.generate(
-            system_prompt=system_prompt,
-            user_message=current_user_message,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
-        try:
-            return _extract_json(raw_text)
-        except json.JSONDecodeError as exc:
-            last_error = exc
-            logger.warning(
-                "classify_document: gecersiz JSON yaniti (deneme %d/%d): %s",
-                attempt + 1, max_json_attempts, exc,
-            )
-            current_user_message = (
-                f"{user_message}\n\n---\n"
-                f"Onceki yanitin gecerli bir JSON nesnesi degildi (hata: {exc}). "
-                f"Onceki yanitin: {raw_text!r}\n"
-                "Lutfen SADECE gecerli bir JSON nesnesi dondur, baska hicbir metin ekleme."
-            )
-
-    logger.error("classify_document: %d denemeden sonra gecerli JSON alinamadi.", max_json_attempts)
-    raise last_error
 
 
 def classify_document(
@@ -187,6 +137,7 @@ def classify_document(
         max_tokens=max_tokens,
         temperature=temperature,
         max_json_attempts=max_json_attempts,
+        caller_name="classify_document",
     )
 
     siniflar = result.get("siniflar")
