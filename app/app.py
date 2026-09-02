@@ -43,6 +43,7 @@ pages = [
     st.Page("views/anomalies.py", title="Anomaliler", icon=":material/warning:"),
     st.Page("views/relationships.py", title="Belge İlişkileri", icon=":material/hub:"),
     st.Page("views/dashboard.py", title="Dashboard", icon=":material/dashboard:"),
+    st.Page("views/model_compare.py", title="Model Karşılaştırma", icon=":material/compare_arrows:"),
     st.Page("views/settings.py", title="Ayarlar", icon=":material/tune:"),
 ]
 navigation = st.navigation(pages)
