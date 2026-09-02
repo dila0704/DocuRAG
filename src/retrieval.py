@@ -160,6 +160,12 @@ def hybrid_search(
     Bunu ayirt edebilmek icin her sonuca "score_type": "rrf" eklenir
     (vector_store.search()'un duz cosine skorlarindan bilerek ayristirilir).
 
+    Seffaflik icin her sonuca ayrica ham (fusion-oncesi) "dense_score" ve
+    "bm25_score" alanlari eklenir (bir aday sadece bir alt-sistemden geldiyse
+    digeri None kalir) -- RRF'nin nihai siralamasini ETKILEMEZ, sadece "bu
+    sonuc nereden geldi" sorusuna UI'da (bkz. app/views/search.py) cevap
+    verir.
+
     dense_top_k/bm25_top_k verilmezse top_k ile en az 20 arasindaki buyuk
     deger kullanilir -- boylece hem kucuk top_k'lerde (orn. 5) yeterince genis
     bir aday havuzundan fusion yapilir, hem de "TUM chunk'lari getir" gibi
@@ -185,10 +191,14 @@ def hybrid_search(
     dense_top_k = dense_top_k if dense_top_k is not None else default_pool
     bm25_top_k = bm25_top_k if bm25_top_k is not None else default_pool
 
-    dense_ranking = [doc_id for doc_id, _ in _dense_search_with_ids(index, query_embedding, dense_top_k)]
+    dense_hits = _dense_search_with_ids(index, query_embedding, dense_top_k)
+    dense_ranking = [doc_id for doc_id, _ in dense_hits]
+    dense_scores = dict(dense_hits)
 
     bm25, id_order = bm25_index if bm25_index is not None else build_bm25_index(metadata)
-    bm25_ranking = [doc_id for doc_id, _ in bm25_search(bm25, id_order, query, bm25_top_k)]
+    bm25_hits = bm25_search(bm25, id_order, query, bm25_top_k)
+    bm25_ranking = [doc_id for doc_id, _ in bm25_hits]
+    bm25_scores = dict(bm25_hits)
 
     fused = reciprocal_rank_fusion([dense_ranking, bm25_ranking])
     logger.info(
@@ -196,8 +206,19 @@ def hybrid_search(
         query, len(dense_ranking), len(bm25_ranking), len(fused), top_k,
     )
 
+    # dense_score/bm25_score: SEFFAFLIK icin eklenen ham (fusion-oncesi) skorlar
+    # (bkz. app/views/search.py "Nasil bulundu?" paneli) -- nihai siralama/
+    # "score" (RRF) alanina dokunmaz, sadece hangi alt-sistemin bu adayi
+    # getirdigini gozle gorulur kilar. Bir adayi sadece dense (ya da sadece
+    # BM25) getirdiyse diger alan None kalir.
     all_candidates = [
-        {"score": rrf_score, "score_type": "rrf", **metadata[doc_id]}
+        {
+            "score": rrf_score,
+            "score_type": "rrf",
+            "dense_score": dense_scores.get(doc_id),
+            "bm25_score": bm25_scores.get(doc_id),
+            **metadata[doc_id],
+        }
         for doc_id, rrf_score in fused
         if doc_id in metadata
     ]

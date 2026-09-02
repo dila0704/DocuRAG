@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import html
 import logging
+import time
 from collections import Counter
 from urllib.parse import quote
 
@@ -112,6 +113,18 @@ with st.container(key="search-toolbar"):
         if st.session_state["conversation_history"] and st.button("Sohbeti temizle", use_container_width=True):
             st.session_state["conversation_history"] = []
             st.rerun()
+
+    compare_mode = st.toggle(
+        "Karşılaştırma modu (Temel Hibrit vs Rerank + HyDE)",
+        value=False,
+        key="compare-mode",
+        help=(
+            "Aynı sorguyu iki ayrı yapılandırmayla (rerank/HyDE kapalı vs açık) çalıştırıp "
+            "sonuçları ve süreleri yan yana gösterir — 'rerank/HyDE gerçekten fark yaratıyor mu' "
+            "sorusuna canlı bir cevap. Normal aramadan daha yavaştır (arama iki kez çalışır) ve "
+            "AI özeti üretmez."
+        ),
+    )
 
 if st.session_state["conversation_history"]:
     st.caption(f"💬 {len(st.session_state['conversation_history'])} önceki soru bağlam olarak kullanılıyor (takip sorularını buna göre yorumlar).")
@@ -235,6 +248,94 @@ with results_area.container():
         data_access.get_index(index_path)
     except FileNotFoundError:
         st.warning("Henüz hiçbir belge indekslenmemiş. Önce **Belge Yükleme** sayfasından bir belge ekleyin.")
+        st.stop()
+
+    # DOC-35: "en yuksek/en dusuk tutarli fatura" gibi sorgular KARSILASTIRMA
+    # gerektirir -- dogru cevap icin TUM belgelerin taranmasi lazim, ama
+    # asagidaki normal akis sadece "en alakali top-k parca"yi getirir. LLM bu
+    # sinirli baglamla, gormedigi belgeleri hic yokmus gibi "en yuksek" diye
+    # sunabilir (yanlis oldugunu SOYLEMEDEN yanlis olabilir). Bunun onune
+    # gecmek icin boyle sorgular tespit edilip cevap LLM'e SORULMADAN, TUM
+    # metadata uzerinde deterministik hesaplanir (anomaly.py'nin "tam corpus,
+    # LLM'siz, kod-dogrulanmis" ilkesiyle AYNI yaklasim) ve normal arama
+    # sonuclarinin USTUNE, ayri/acik sekilde etiketlenmis bir banner olarak
+    # eklenir -- normal akisi degistirmez/engellemez, sadece tamamlar.
+    amount_direction = field_extractor.detect_amount_superlative_query(query)
+    if amount_direction is not None:
+        category_hint = field_extractor.detect_category_hint(query)
+        winner = field_extractor.find_amount_superlative_document(all_metadata, amount_direction, category=category_hint)
+        if winner is not None:
+            label = "en yüksek" if amount_direction == "max" else "en düşük"
+            scope = f"tüm {html.escape(category_hint)} belgeleri" if category_hint else "tüm belgeler"
+            taraflar_str = ", ".join(winner["taraflar"]) if winner["taraflar"] else "bilinmiyor"
+            konu_suffix = f" ({html.escape(winner['konu'])})" if winner.get("konu") else ""
+            belge_no_suffix = f" · Belge No: {html.escape(winner['belge_no'])}" if winner.get("belge_no") else ""
+            st.markdown(
+                f"""
+                <div class="bento-tile bento-tile-hero" style="margin-bottom:16px;">
+                  <span class="bento-label">Kesin Sonuç · kod ile hesaplandı, LLM'e sorulmadı</span>
+                  <div class="disp" style="font-size:16px;font-style:italic;margin-top:6px;color:#FBF9F4;">
+                    {scope.capitalize()} arasında {label} tutar <b>{html.escape(winner['tutar_raw'] or '')}</b> ile
+                    <b>{html.escape(winner['source_doc'])}</b>{konu_suffix} belgesinde.
+                  </div>
+                  <div style="font-size:12px;color:rgba(247,244,238,0.75);margin-top:8px;">
+                    Taraflar: {html.escape(taraflar_str)}{belge_no_suffix}
+                  </div>
+                  <div style="font-size:11px;color:rgba(247,244,238,0.55);margin-top:10px;">
+                    Bu sonuç, arama sonucu getirilen az sayıda parça yerine indekslenen TÜM belgeler taranarak
+                    hesaplandı — "en yüksek/en düşük" gibi karşılaştırma sorularında LLM'in gördüğü kısıtlı
+                    bağlamla yanlış genelleme yapmasını önler.
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info("Tutar karşılaştırması yapmaya çalıştım ama indekslenen belgelerde ayrıştırılabilir bir tutar bulamadım.")
+
+    if compare_mode:
+        # DOC-30 sonrasi eklenen "wow" ozelligi: rerank/HyDE'nin GERCEKTEN bir
+        # fark yaratip yaratmadigini canli olcup gostermek icin ayni sorgu
+        # TAM OLARAK IKI KEZ calistirilir (temel hibrit vs rerank+HyDE).
+        # Kaynak gosterimli AI ozeti (ayri bir LLM cagrisi) bilerek burada
+        # calistirilmaz -- bu mod SADECE retrieval katmanini karsilastirir,
+        # normal arama akisiyla ayni sorguda ic ice calismaz (st.stop() ile
+        # asagidaki normal akis atlanir).
+        st.markdown("#### Karşılaştırma: Temel Hibrit vs Rerank + HyDE")
+        bm25_index = data_access.get_bm25_index(index_path)
+        compare_cols = st.columns(2)
+        compare_configs = [
+            ("Temel Hibrit", {"use_reranker": False, "expand_query": False}),
+            ("Rerank + HyDE", {"use_reranker": True, "expand_query": True}),
+        ]
+        for col, (label, extra_kwargs) in zip(compare_cols, compare_configs):
+            with col:
+                st.markdown(f"**{label}**")
+                t0 = time.perf_counter()
+                try:
+                    with st.spinner(f"{label} çalışıyor..."):
+                        cmp_results = pipeline.search_documents(
+                            query, top_k=5, bm25_index=bm25_index, metadata_filter=field_filter, **extra_kwargs,
+                        )
+                except Exception:
+                    logger.exception("Karşılaştırma modu başarısız: %s", label)
+                    st.error("Bu yapılandırmada arama başarısız oldu.")
+                    continue
+                elapsed = time.perf_counter() - t0
+                st.caption(f"⏱ {elapsed:.2f} sn · {len(cmp_results)} sonuç")
+                if not cmp_results:
+                    st.caption("Sonuç bulunamadı.")
+                for rank, r in enumerate(cmp_results[:5], start=1):
+                    if r.get("score_type") == "rrf":
+                        score_label = f"RRF {r['score']:.3f}"
+                    else:
+                        score_label = f"%{round(r.get('score', 0.0) * 100)}"
+                    if r.get("rerank_score") is not None:
+                        score_label += f" · rerank {r['rerank_score']:.3f}"
+                    st.markdown(f"{rank}. **{html.escape(r.get('source_doc', 'bilinmiyor'))}** · `{score_label}`")
+                    st.caption((r.get("text", "") or "")[:140])
+        st.divider()
+        st.caption("Karşılaştırma modunu kapatarak normal aramaya (AI özeti dahil) dönebilirsiniz.")
         st.stop()
 
     try:
@@ -365,10 +466,16 @@ with results_area.container():
         )
         spotlight_tag = '<span class="spotlight-tag">En iyi eşleşme</span>' if hero else ""
 
+        # NOT: {spotlight_tag} kasitli olarak {card_class} ile AYNI satirda --
+        # hero=False iken bos string oldugu icin kendi satirinda birakilirsa
+        # TAMAMEN BOS bir satir olusur, bu da Markdown'in HTML blok algisini
+        # erken kapatir ve geri kalan tum <div>'ler duz metin/kod blogu olarak
+        # sizar (render_class_distribution_donut()'taki .strip() ile AYNI
+        # kok neden, bkz. app/views/dashboard.py). Gercek uygulamada (grid
+        # kartlarinda) gozlenip duzeltildi.
         st.markdown(
             f"""
-            <div class="{card_class}">
-              {spotlight_tag}
+            <div class="{card_class}">{spotlight_tag}
               <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
                 <div>
                   <div style="font-weight:600;font-size:{'16px' if hero else '14px'};">{html.escape(group['source_doc'])}</div>
@@ -382,6 +489,30 @@ with results_area.container():
             """,
             unsafe_allow_html=True,
         )
+
+        # "Nasil bulundu?" seffaflik paneli: retrieval'in ic skorlarini
+        # (RRF fusion oncesi ham dense/BM25 skorlari + varsa rerank skoru)
+        # kullaniciya gosterir -- hibrit aramanin "black box" hissini kirmak
+        # icin (bkz. retrieval.hybrid_search dense_score/bm25_score alanlari).
+        score_rows = []
+        for chunk in sorted(group["chunks"], key=lambda c: c["_citation_index"]):
+            parts = [f"**[{chunk['_citation_index']}]**"]
+            if chunk.get("dense_score") is not None:
+                parts.append(f"dense (cosine) {chunk['dense_score']:.3f}")
+            if chunk.get("bm25_score") is not None:
+                parts.append(f"BM25 {chunk['bm25_score']:.3f}")
+            score = chunk.get("score")
+            if score is not None:
+                label = "RRF" if chunk.get("score_type") == "rrf" else "cosine"
+                parts.append(f"{label} {score:.3f}")
+            if chunk.get("rerank_score") is not None:
+                parts.append(f"rerank {chunk['rerank_score']:.3f}")
+            score_rows.append(" · ".join(parts))
+
+        if score_rows:
+            with st.expander("Nasıl bulundu?"):
+                for row in score_rows:
+                    st.caption(row)
 
         if is_highlighted:
             image_path = data_access.document_image_path(group["source_doc"])

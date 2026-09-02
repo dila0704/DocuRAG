@@ -82,6 +82,35 @@ def test_hybrid_search_merges_dense_and_bm25_matches():
     assert all(r["score_type"] == "rrf" for r in results)
 
 
+def test_hybrid_search_includes_raw_dense_and_bm25_scores():
+    # 3 belge gerekli: BM25 IDF'i N=2/df=1'de tam 0 cikiyor (ayirt edici
+    # olmuyor, bkz. test_build_bm25_index_and_search_finds_keyword_match'teki
+    # ayni not) -- ucuncu ("toplanti notlari proje") belge sadece IDF'i
+    # ayirt edici kilmak icin ekleniyor.
+    chunks = [
+        _embedded_chunk("laptop talebi ofis ekipmani", "a.png", seed=1),
+        _embedded_chunk("kira sozlesmesi daire", "b.png", seed=5),
+        _embedded_chunk("toplanti notlari proje", "c.png", seed=3),
+    ]
+    index, metadata = vs.build_index(chunks)
+    query_embedding = _embedded_chunk("x", "q", seed=1)["embedding"]
+
+    # dense_top_k/bm25_top_k=1 ile her aday havuzu SADECE kendi en iyi
+    # eslesmesini iceriyor -- boylece bir sonucun "sadece dense" ya da
+    # "sadece bm25" tarafindan getirildigi (diger skorun None kaldigi) acikca
+    # gorulebiliyor.
+    results = retrieval.hybrid_search(
+        index, metadata, "kira sozlesmesi", query_embedding, top_k=2,
+        dense_top_k=1, bm25_top_k=1,
+    )
+
+    by_doc = {r["source_doc"]: r for r in results}
+    assert by_doc["a.png"]["dense_score"] is not None
+    assert by_doc["a.png"]["bm25_score"] is None
+    assert by_doc["b.png"]["bm25_score"] is not None
+    assert by_doc["b.png"]["dense_score"] is None
+
+
 def test_hybrid_search_respects_top_k():
     chunks = [_embedded_chunk(f"belge {i}", f"doc_{i}.png", seed=i) for i in range(5)]
     index, metadata = vs.build_index(chunks)
