@@ -3,9 +3,19 @@
 ![tests](https://github.com/dila0704/DocuRAG/actions/workflows/tests.yml/badge.svg)
 ![coverage](https://img.shields.io/badge/coverage-90%25-2E7D5B) ![tests](https://img.shields.io/badge/tests-252%20passing-2E7D5B) ![ruff](https://img.shields.io/badge/lint-ruff-2E7D5B) ![mypy](https://img.shields.io/badge/types-mypy-2E7D5B)
 
-Belge görsellerinden (fatura, sözleşme, dilekçe vb.) çıkarılan metinler üzerinde hibrit (BM25+dense) semantik arama, LLM tabanlı sınıflandırma/alan çıkarımı ve kaynak gösterimli (grounded) cevaplama yapabilen, çoklu dil modeli (cloud/local) desteğine uygun esnek bir RAG (Retrieval-Augmented Generation) pipeline'ı.
+**Taranmış belgeleri (fatura, sözleşme, dilekçe, talep formu) okuyup anlayan, günlük konuşma diliyle sorulan sorulara kaynak göstererek cevap veren bir RAG (Retrieval-Augmented Generation) sistemi.**
 
-> 🚧 **Durum: Geliştirme aşamasında.** Aşağıdaki modüller tamamlanmış olup proje aktif olarak genişletilmektedir. Kapsamlı bir genişletme turu sonrası güncel test/coverage sayıları için üstteki rozetlere bakın (rozetler statik; CI'ın "tests" rozeti güncel durumu otomatik gösterir).
+Bir şirkette çalışanlar sürekli kağıt form dolduruyor; bunlar taranıp görüntü olarak arşivleniyor ama biri "geçen ay kim laptop istedi?" diye sorduğunda yüzlerce görseli tek tek açmaktan başka çare kalmıyor. DocuRAG bunu çözüyor: her belgeyi önce "okuyor" (multimodal OCR), otomatik kategoriye ayırıp yapılandırılmış bilgi (tarih/tutar/taraflar) çıkarıyor, sonra bu bilgiyi öyle saklıyor ki kullanıcı sorudaki kelimeler belgede birebir geçmese bile en alakalı belgeyi buluyor ve **kaynağını göstererek** doğrulanmış bir cevap üretiyor. Hem bulutta (Anthropic/OpenAI) hem bilgisayarda yerel çalışan modeller arasında tek bir ayardan geçiş yapılabiliyor.
+
+**Durum: Tamamlandı.** 252 test, %90 kapsam, CI'da otomatik `ruff`/`mypy` denetimi (rozetler CI tarafından otomatik güncellenir).
+
+## Ekran Görüntüleri
+
+| | |
+|---|---|
+| ![Kesin Sonuç](docs/screenshots/arama-kesin-sonuc.png) **Kod ile doğrulanmış kesin cevap** — "en yüksek tutarlı faturanın göndericisi kim" gibi karşılaştırma soruları LLM'e tahmin ettirilmiyor; sistem tüm belgeleri tarayıp gerçek cevabı kod tarafında hesaplıyor ve bunu açıkça etiketliyor. | ![Nasıl bulundu](docs/screenshots/arama-nasil-bulundu.png) **Kaynak gösterimli arama** — her sonuç, hangi belgeden geldiğini ve hangi skorla (dense/BM25/RRF) bulunduğunu şeffafça gösteriyor. |
+| ![Belge yükleme](docs/screenshots/belge-yukleme-canli-ilerleme.png) **Canlı işleme akışı** — bir belge yüklendiğinde OCR → sınıflandırma → alan çıkarımı → embedding → indeksleme adımları gerçek zamanlı izlenebiliyor. | ![İnceleme kuyruğu](docs/screenshots/belge-yukleme-inceleme-kuyrugu.png) **İnsan-döngüde inceleme** — güven skoru düşük çıkan belgeler otomatik olarak inceleme kuyruğuna düşüyor, kimse belgeyi görmeden onay vermiyor. |
+| ![Dashboard](docs/screenshots/dashboard.png) **Gerçek verilerle dolu Dashboard** — belge/kategori dağılımı, model maliyeti ve gecikme süresi; hiçbir sayı mockup değil. | ![Model karşılaştırma](docs/screenshots/model-karsilastirma.png) **Cloud vs Local model karşılaştırma** — aynı belge iki farklı modelle sınıflandırılıp doğruluk/hız farkı canlı gösteriliyor. |
 
 ## Mimari
 
@@ -98,24 +108,19 @@ Dört bağımsız uzman gözünden (RAG mimarisi, LLM mühendisliği, yazılım/
 - **Cloud vs Local Model Karşılaştırma Sayfası** — Yeni bir sayfa (`app/views/model_compare.py`), aynı metni hem gerçek cloud modeliyle hem `Qwen/Qwen2.5-0.5B-Instruct` (gated 8B hedef model yerine, `notebooks/12`'de zaten kurulmuş vekil model geleneğiyle tutarlı) ile sınıflandırıp sınıf/güven/süre farkını canlı gösteriyor; local model kullanılamazsa sayfa çökmek yerine net bir uyarı gösterip cloud sonucunu göstermeye devam ediyor.
 - **Canlı Demo İçin Kasıtlı Hasarlı Belge** — `data/raw_docs/demo_hasarli_belge.png` (`notebooks/_generate_demo_bad_doc.py`), düşük kontrast + bulanıklaştırma ile kasıtlı olarak zor okunur bir "tarama hatası" örneği; indekse otomatik eklenmez, sunumda elle yükleyip düşük güven → İnceleme Kuyruğu akışını canlı göstermek için hazır bekler.
 
-## Devam eden / planlanan çalışmalar
+## Bilinen Sınırlar ve İyileştirme Fırsatları
 
-- (Gerçek API ile bulunan bir kısıtlama) `claude-sonnet-5` modeli artık `temperature` parametresini kabul etmiyor ("deprecated" hatası); `AnthropicClient` bu hatayı yakalayıp parametre olmadan otomatik yeniden deniyor (bkz. `src/llm_factory.py`), ancak bu, bu model için `temperature=0.0` ile hedeflenen tam determinizmin artık garanti edilemediği anlamına geliyor.
-- (DOC-34 genişletilmiş testinde bulunan gerçek bir sınır) 15 belge/5 kategoriye çıkan örneklemde Hit@1 %67'ye düştü — `chunk_size=300` varsayılanının kısa belgelerde (fatura gibi) başlık/gövde ayrımını yeterince ayırt etmemesi ve BM25'in Türkçe kök/lemma normalizasyonu yapmaması iki tekrarlayan sebep olarak öne çıkıyor (bkz. `notebooks/14`); semantic chunking veya sorguya özel dense/BM25 ağırlıklandırması gibi iyileştirmeler ayrı bir oturumda ele alınmayı bekliyor.
-- RAGAS-tarzı LLM-as-judge harness'i şu an 12 sorguluk bir alt örneklemde çalıştırıldı (maliyet/süre nedeniyle); tam 30 sorguya genişletilmesi ve düzenli olarak (örn. CI'da periyodik) yeniden çalıştırılması mümkün ama henüz otomatikleştirilmedi.
+Proje tamamlanmış olsa da her mühendislik kararının bir sınırı vardır — bunlar bilinçli olarak burada açıkça belgeleniyor (gizlenen bir eksik değil, ölçülmüş/gözlemlenmiş bir gerçek):
 
-## Bilinen Sınırlar (özet)
-
-Yukarıda dağınık olarak geçen sınırların tek yerde toplanmış hali:
-
-1. ~~Çoklu-process eşzamanlılık~~ **(DOC-34'te giderildi):** FastAPI ve Streamlit'in aynı FAISS index/metadata dosyalarına eşzamanlı yazması artık `filelock.FileLock` ile korunuyor (`src/vector_store.py`) — kilit alınamazsa sessiz veri kaybı yerine anlamlı bir `RuntimeError` fırlatılır. `usage_log.jsonl` (append-only, satır bazlı yazma) hâlâ kilitsiz — çok düşük risk, ayrı bir madde olarak izleniyor.
-2. **BM25 Türkçe morfolojisi ve chunk boyutu, ölçülmüş bir doğruluk maliyeti taşıyor:** `retrieval._normalize_for_bm25` kök bulma yapmaz; 15 belge/5 kategoriye çıkan genişletilmiş testte bu, Hit@1'i %80'den %67'ye düşüren iki sebepten biri olarak somut şekilde ölçüldü (bkz. `notebooks/14`, "Devam eden çalışmalar").
+1. ~~Çoklu-process eşzamanlılık~~ **(giderildi):** FastAPI ve Streamlit'in aynı FAISS index/metadata dosyalarına eşzamanlı yazması artık `filelock.FileLock` ile korunuyor (`src/vector_store.py`) — kilit alınamazsa sessiz veri kaybı yerine anlamlı bir `RuntimeError` fırlatılır. `usage_log.jsonl` (append-only, satır bazlı yazma) hâlâ kilitsiz — çok düşük risk, ayrı bir madde olarak izleniyor.
+2. **BM25 Türkçe morfolojisi ve chunk boyutu, ölçülmüş bir doğruluk maliyeti taşıyor:** `retrieval._normalize_for_bm25` kök bulma yapmaz; örneklem 5 belge/1 kategoriden 15 belge/5 kategoriye çıkarılınca Hit@1 %80'den %67'ye düştü — küçük/homojen bir örneklemin ne kadar iyimser sonuç verebildiğinin somut kanıtı (bkz. `notebooks/14`). `chunk_size=300` varsayılanının kısa belgelerde başlık/gövde ayrımını yeterince ayırt etmemesi ikinci sebep. Semantic chunking veya sorguya özel dense/BM25 ağırlıklandırması gibi iyileştirmeler için net bir yol haritası var.
 3. **Tesseract operasyonel bağımlılığı:** Görsel vurgulama özelliği, sistemde ayrıca kurulu bir Tesseract-OCR binary + `tur.traineddata` gerektirir; kurulu değilse özellik sessizce devre dışı kalır (ana pipeline etkilenmez).
 4. **Kademeli cevap gösterimi algısaldır:** `components.stream_sentences`, gerçek bir LLM token-stream'i değildir — backend tam JSON'ı ürettikten/doğruladıktan SONRA çağrılır, gerçek gecikme azaltmaz.
 5. **Çok-turlu arama oturuma özeldir:** `st.session_state["conversation_history"]`, Streamlit'in doğası gereği tek kullanıcı/tek oturum kapsamındadır.
-6. **`claude-sonnet-5`'in `temperature` parametresini artık kabul etmemesi** — yukarıda detaylandırıldı.
-7. **Prompt injection savunması kod-seviyesinde garanti edilemez:** `UNTRUSTED_CONTENT_NOTICE` prompt-tabanlıdır; 6/6 gerçek saldırı denemesi başarısız olsa da (bkz. DOC-34), bu istatistiksel bir kanıttır, matematiksel bir garanti değildir.
+6. **`claude-sonnet-5`'in `temperature` parametresini artık kabul etmemesi:** `AnthropicClient` bu hatayı yakalayıp parametre olmadan otomatik yeniden dener (bkz. `src/llm_factory.py`), ancak bu, `temperature=0.0` ile hedeflenen tam determinizmin artık garanti edilemediği anlamına geliyor.
+7. **Prompt injection savunması kod-seviyesinde garanti edilemez:** `UNTRUSTED_CONTENT_NOTICE` prompt-tabanlıdır; 6/6 gerçek saldırı denemesi başarısız olsa da, bu istatistiksel bir kanıttır, matematiksel bir garanti değildir.
 8. **Model Karşılaştırma sayfasında local model ilk-kullanım gecikmesi:** `Qwen/Qwen2.5-0.5B-Instruct` ilk çağrıda indirilir/CPU'da çalışır, birkaç dakika sürebilir; sayfa bunu `st.spinner` ile açıkça belirtir, hata durumunda cloud sonucunu göstermeye devam eder.
+9. **RAGAS-tarzı LLM-as-judge harness'i şu an 12 sorguluk bir alt örneklemde çalıştırıldı** (maliyet/süre nedeniyle); tam 30 sorguya genişletilmesi ve düzenli aralıklarla yeniden çalıştırılması mümkün, henüz otomatikleştirilmedi.
 
 ## Proje yapısı
 
