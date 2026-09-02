@@ -89,7 +89,10 @@ def find_amount_outliers(documents: dict[str, dict], z_threshold: float = DEFAUL
         if abs(z_score) >= z_threshold:
             outliers.append({"source_doc": source_doc, "tutar": amount, "z_score": z_score})
 
-    outliers.sort(key=lambda o: abs(o["z_score"]), reverse=True)
+    # mypy: outliers'daki dict'ler karma deger tipli (str + float) oldugu icin
+    # "z_score" object olarak cikarsanir; degerin gercekte her zaman float
+    # oldugu biliniyor (yukarida atandi).
+    outliers.sort(key=lambda o: abs(o["z_score"]), reverse=True)  # type: ignore[arg-type]
     if outliers:
         logger.info("find_amount_outliers: %d tutar aykiri degeri bulundu.", len(outliers))
     return outliers

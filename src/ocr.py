@@ -115,10 +115,15 @@ def extract_text_from_image(
                 model=model_name,
                 max_tokens=max_tokens,
                 system=SYSTEM_PROMPT,
-                messages=[{
+                # mypy: anthropic SDK'nin MessageParam/ContentBlockParam union'i
+                # cok siki tipli; asagidaki duz dict, gercek API'nin kabul
+                # ettigi (ve testlerde/gercek cagrilarda dogrulanan) multimodal
+                # mesaj bicimiyle birebir ayni, sadece stub'lar bu kadar
+                # esnek bir literal dict'i taniyamiyor.
+                messages=[{  # type: ignore[list-item]
                     "role": "user",
                     "content": [
-                        {
+                        {  # type: ignore[list-item]
                             "type": "image",
                             "source": {
                                 "type": "base64",
@@ -145,7 +150,10 @@ def extract_text_from_image(
                 f"OCR {total_attempts} denemeden sonra basarisiz oldu: {image_path}"
             ) from last_exc
 
-        text = "".join(block.text for block in response.content if block.type == "text").strip()
+        # mypy: `block.type == "text"` kontrolu calisma zamaninda TextBlock'a
+        # daraltiyor ama mypy'nin genis content-block union'i icin bunu bir
+        # tip daraltmasi (narrowing) olarak tanimiyor.
+        text = "".join(block.text for block in response.content if block.type == "text").strip()  # type: ignore[union-attr]
         logger.info(
             "OCR tamamlandi: dosya=%s sure=%.2fsn metin_uzunlugu=%d",
             image_path, time.time() - t0, len(text),

@@ -57,7 +57,11 @@ def embed_chunks(
 
 
 def embedding_dimension(model_name: str = DEFAULT_MODEL_NAME) -> int:
-    return _get_model(model_name).get_embedding_dimension()
+    # mypy: sentence-transformers stub'i get_embedding_dimension()'i
+    # `int | None` olarak isaretliyor; yuklenmis bir modelde bu deger
+    # pratikte hep dolu gelir (None sadece hic model yuklenmemisken teorik
+    # olarak mumkun, ki _get_model() zaten modeli yukler).
+    return _get_model(model_name).get_embedding_dimension()  # type: ignore[return-value]
 
 
 def cosine_similarity(a: list[float], b: list[float]) -> float:

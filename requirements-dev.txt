@@ -2,3 +2,5 @@
 # CI ve yerel test calistirmasi icin: pip install -r requirements.txt -r requirements-dev.txt
 pytest==8.4.2
 pytest-cov==6.2.1
+ruff==0.16.5
+mypy==2.3.1

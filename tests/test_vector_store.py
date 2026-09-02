@@ -197,3 +197,33 @@ def test_search_with_metadata_filter_fewer_matches_than_top_k():
     results = vs.search(index, metadata, query_embedding, top_k=5, metadata_filter=lambda m: m["source_doc"] == "doc_1.png")
     assert len(results) == 1
     assert results[0]["source_doc"] == "doc_1.png"
+
+
+def test_save_and_load_index_still_roundtrips_under_file_lock(tmp_path):
+    # Dosya kilidi (DOC-30 "bilinen sinir" kapatma) eklendikten sonra da
+    # ardisik save_index()/load_index()/save_metadata() cagrilari (kilidi
+    # her seferinde alip biraktiklari icin) sorunsuz calismali.
+    chunks = [_chunk("fatura metni", "a.png", seed=1), _chunk("sozlesme metni", "b.png", seed=2)]
+    index, metadata = vs.build_index(chunks)
+    path = str(tmp_path / "idx")
+
+    vs.save_index(index, metadata, path)
+    loaded_index, loaded_metadata = vs.load_index(path)
+    assert loaded_index.ntotal == 2
+
+    vs.save_metadata(vs.update_metadata_by_source_doc(loaded_metadata, "a.png", {"human_review": False}), path)
+    _, reloaded_metadata = vs.load_index(path)
+    assert reloaded_metadata[0]["human_review"] is False
+
+
+def test_save_index_raises_runtime_error_when_lock_held(tmp_path, monkeypatch):
+    # Kilit baska bir islem tarafindan tutuluyorken save_index() sessizce
+    # takilip kalmak/veri bozmak yerine anlamli bir RuntimeError firlatmali.
+    monkeypatch.setattr(vs, "_LOCK_TIMEOUT_S", 0.2)
+    chunks = [_chunk("fatura metni", "a.png", seed=1)]
+    index, metadata = vs.build_index(chunks)
+    path = str(tmp_path / "idx")
+
+    with vs.FileLock(vs._lock_path(path)):
+        with pytest.raises(RuntimeError):
+            vs.save_index(index, metadata, path)

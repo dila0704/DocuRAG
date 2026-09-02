@@ -1,0 +1,12 @@
+# CI'da src/ ve app/ uzerinde calistirilan ruff yapilandirmasi (bkz.
+# .github/workflows/tests.yml). Amac stil polisligi degil GERCEK hatalari
+# yakalamak: E9 (syntax hatasi), F63 (yanlis karsilastirma/tip kullanimi),
+# F7 (break/continue/return yanlis yerde), F82 (tanimsiz isim) -- bunlarin
+# hepsi calisma zamaninda gercek bir hataya isaret eder. Stil kurallari
+# (satir uzunlugu, import sirasi vb.) bilincli olarak KAPALI birakildi;
+# src/, notebook'larla ayni "duz" (flat) import konvansiyonunu kullaniyor
+# (bkz. tests/conftest.py), agresif bir stil linter'i bu deseni bozardi.
+line-length = 120
+
+[lint]
+select = ["E9", "F63", "F7", "F82"]

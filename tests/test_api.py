@@ -121,3 +121,17 @@ def test_delete_document_endpoint_returns_404_when_not_found(monkeypatch):
 
     response = client.delete("/documents/does_not_exist.png")
     assert response.status_code == 404
+
+
+def test_metrics_endpoint_exposes_request_counter(monkeypatch):
+    # Once en az bir istek atarak (gercek index dosyalarina bagimli
+    # olmadan) middleware'in gercekten calisip metrigi artirdigini dogrula.
+    monkeypatch.setattr(vector_store, "load_index_path", lambda: "fake_path")
+    monkeypatch.setattr(vector_store, "load_index", lambda path: (_ for _ in ()).throw(FileNotFoundError()))
+    client.get("/documents")
+
+    response = client.get("/metrics")
+
+    assert response.status_code == 200
+    assert "docurag_api_requests_total" in response.text
+    assert "docurag_api_request_duration_seconds" in response.text

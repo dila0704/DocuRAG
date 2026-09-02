@@ -29,11 +29,25 @@ from typing import Callable
 import faiss
 import numpy as np
 import yaml
+from filelock import FileLock, Timeout
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "config", "settings.yaml")
+
+# FastAPI (app/api.py) ve Streamlit (app/app.py) ayni ".faiss"/".meta.json"
+# ciftine AYRI process'lerden yazabiliyor (bkz. README "bilinen sinir").
+# save_index()/load_index() bu yuzden ayni "{path}.lock" dosyasi uzerinden
+# bir dosya kilidi alir -- boylece iki process ayni anda yazip birbirinin
+# yarim birakilmis dosyasini okumaz. Kilit sadece BU path icin cakisan
+# save/load cagrilarini serialize eder, farkli index path'leri birbirini
+# bloklamaz.
+_LOCK_TIMEOUT_S = 10.0
+
+
+def _lock_path(path: str) -> str:
+    return path + ".lock"
 
 
 def load_index_path(config_path: str = DEFAULT_CONFIG_PATH) -> str:
@@ -129,13 +143,30 @@ def delete_by_source_doc(
         logger.info("delete_by_source_doc: '%s' icin eslesen chunk bulunamadi.", source_doc)
         return index, metadata
 
-    index.remove_ids(np.array(ids_to_remove, dtype="int64"))
+    # mypy: faiss'in tip kok"leri remove_ids() icin bir IDSelector nesnesi
+    # bekliyor gibi gorunuyor ama gercek (SWIG uzerinden calisan) calisma
+    # zamani API'si int64 ndarray'i de kabul eder -- bu, faiss-cpu paketinin
+    # eksik/asiri kati stub'larindan kaynaklanan bilinen bir uyumsuzluk.
+    index.remove_ids(np.array(ids_to_remove, dtype="int64"))  # type: ignore[arg-type]
     new_metadata = {doc_id: m for doc_id, m in metadata.items() if doc_id not in ids_to_remove}
     logger.info(
         "delete_by_source_doc: '%s' icin %d chunk silindi (yeni toplam=%d).",
         source_doc, len(ids_to_remove), index.ntotal,
     )
     return index, new_metadata
+
+
+def _write_metadata_file(metadata: dict[int, dict], path: str) -> None:
+    """save_metadata()'nin kilitsiz ic yazma mantigi -- save_index() de ayni
+    dosya kilidi altindayken bunu dogrudan cagirir (save_metadata()'yi
+    cagirsaydi, AYNI path icin ikinci bir FileLock ornegi acilir ve
+    reentrant kilitlenme Windows'ta garanti edilmedigi icin kilitlenme
+    riski dogardi)."""
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    records = [{"id": doc_id, **fields} for doc_id, fields in sorted(metadata.items())]
+    with open(path + ".meta.json", "w", encoding="utf-8") as f:
+        json.dump(records, f, ensure_ascii=False, indent=2)
+    logger.info("save_metadata: %d kayit '%s.meta.json' dosyasina yazildi.", len(records), path)
 
 
 def save_metadata(metadata: dict[int, dict], path: str) -> None:
@@ -146,12 +177,19 @@ def save_metadata(metadata: dict[int, dict], path: str) -> None:
     ".faiss" dosyasini) yeniden kurmaya gerek yoktur; sadece bu fonksiyonla
     metadata guncellenir. update_metadata_by_source_doc() ile birlikte
     kullanilir.
+
+    "{path}.lock" dosya kilidi altinda calisir (bkz. save_index() ve modul
+    basindaki _LOCK_TIMEOUT_S notu) -- bagimsiz cagrildiginda da (orn.
+    app/views/review.py) es zamanli save_index()'le yarismaz.
     """
-    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    records = [{"id": doc_id, **fields} for doc_id, fields in sorted(metadata.items())]
-    with open(path + ".meta.json", "w", encoding="utf-8") as f:
-        json.dump(records, f, ensure_ascii=False, indent=2)
-    logger.info("save_metadata: %d kayit '%s.meta.json' dosyasina yazildi.", len(records), path)
+    try:
+        with FileLock(_lock_path(path), timeout=_LOCK_TIMEOUT_S):
+            _write_metadata_file(metadata, path)
+    except Timeout as exc:
+        raise RuntimeError(
+            f"save_metadata: '{path}' icin dosya kilidi {_LOCK_TIMEOUT_S:.0f} saniye icinde alinamadi "
+            "(baska bir islem/process ayni index'e su an yaziyor olabilir)."
+        ) from exc
 
 
 def _metadata_from_records(records: list[dict]) -> dict[int, dict]:
@@ -199,12 +237,23 @@ def save_index(index: faiss.Index, metadata: dict[int, dict], path: str) -> None
     olabiliyor. Bunun onune gecmek icin index once bellekte serialize edilip
     (faiss.serialize_index), diske Python'un kendi (Unicode-guvenli) dosya
     I/O'su ile yaziliyor.
+
+    Yazma, "{path}.lock" dosya kilidi altinda yapilir (bkz. modul basindaki
+    _LOCK_TIMEOUT_S notu) -- ayni index'e FastAPI ve Streamlit'ten eszamanli
+    save_index() cagrisi, birbirinin dosyasini yarim/bozuk birakamaz.
     """
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    index_bytes = faiss.serialize_index(index)
-    with open(path + ".faiss", "wb") as f:
-        f.write(index_bytes.tobytes())
-    save_metadata(metadata, path)
+    try:
+        with FileLock(_lock_path(path), timeout=_LOCK_TIMEOUT_S):
+            index_bytes = faiss.serialize_index(index)
+            with open(path + ".faiss", "wb") as f:
+                f.write(index_bytes.tobytes())
+            _write_metadata_file(metadata, path)
+    except Timeout as exc:
+        raise RuntimeError(
+            f"save_index: '{path}' icin dosya kilidi {_LOCK_TIMEOUT_S:.0f} saniye icinde alinamadi "
+            "(baska bir islem/process ayni index'e su an yaziyor olabilir)."
+        ) from exc
     logger.info("save_index: index '%s.faiss' dosyasina yazildi (ntotal=%d).", path, index.ntotal)
 
 
@@ -227,11 +276,27 @@ def _migrate_to_id_map(index: faiss.Index) -> faiss.IndexIDMap:
 
 
 def load_index(path: str) -> tuple[faiss.IndexIDMap, dict[int, dict]]:
-    with open(path + ".faiss", "rb") as f:
-        index_bytes = np.frombuffer(f.read(), dtype="uint8")
-    index = faiss.deserialize_index(index_bytes)
-    with open(path + ".meta.json", encoding="utf-8") as f:
-        records = json.load(f)
+    """Index + metadata'yi okur.
+
+    Okuma da "{path}.lock" kilidi altinda yapilir: kilit, save_index()'in
+    ".faiss" ve ".meta.json"'i YARIM yazdigi anda araya girip tutarsiz bir
+    cift okumayi (index guncel, metadata eski/vice versa) engeller. Kilit
+    alinamazsa (dosya bulunamama disinda) sessizce eski davranisa
+    (FileNotFoundError) DUSMEZ -- gercek bir eszamanlilik sorununu
+    gizlememek icin RuntimeError firlatir.
+    """
+    try:
+        with FileLock(_lock_path(path), timeout=_LOCK_TIMEOUT_S):
+            with open(path + ".faiss", "rb") as f:
+                index_bytes = np.frombuffer(f.read(), dtype="uint8")
+            index = faiss.deserialize_index(index_bytes)
+            with open(path + ".meta.json", encoding="utf-8") as f:
+                records = json.load(f)
+    except Timeout as exc:
+        raise RuntimeError(
+            f"load_index: '{path}' icin dosya kilidi {_LOCK_TIMEOUT_S:.0f} saniye icinde alinamadi "
+            "(baska bir islem/process ayni index'e su an yaziyor olabilir)."
+        ) from exc
     metadata = _metadata_from_records(records)
 
     if not isinstance(index, faiss.IndexIDMap):

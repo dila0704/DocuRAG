@@ -12,9 +12,11 @@ Otomatik OpenAPI/Swagger dokumantasyonu /docs adresinde acilir.
 from __future__ import annotations
 
 import sys
+import time
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import FastAPI, HTTPException, Request, Response, UploadFile
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from pydantic import BaseModel
 
 SRC_DIR = Path(__file__).resolve().parent.parent / "src"
@@ -31,6 +33,39 @@ app = FastAPI(
     description="Streamlit arayuzune ek, src/ pipeline'ini saran REST servisi.",
     version="1.0",
 )
+
+# Gozlemlenebilirlik (DOC-30 Oncelik 3'un devami): requirements.txt'de zaten
+# kurulu olan prometheus_client burada gercekten kullanilir -- her istegin
+# sayisi ve suresi /metrics uzerinden Prometheus/Grafana ile kazinabilir
+# (usage_log.jsonl sadece LLM cagrilarini logluyordu, bu da HTTP katmanini
+# ekliyor). Label icin RAW `request.url.path` yerine ROUTE PATTERN'i
+# (orn. "/documents/{source_doc}") kullaniyoruz -- aksi halde her farkli
+# belge adi ayri bir metrik serisi acar ve cardinality patlar.
+REQUEST_COUNT = Counter(
+    "docurag_api_requests_total", "Toplam HTTP istek sayisi", ["method", "endpoint", "status_code"],
+)
+REQUEST_DURATION = Histogram(
+    "docurag_api_request_duration_seconds", "HTTP istek suresi (saniye)", ["method", "endpoint"],
+)
+
+
+@app.middleware("http")
+async def _prometheus_metrics_middleware(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration = time.perf_counter() - start
+
+    route = request.scope.get("route")
+    endpoint = route.path if route is not None else request.url.path
+    REQUEST_COUNT.labels(method=request.method, endpoint=endpoint, status_code=response.status_code).inc()
+    REQUEST_DURATION.labels(method=request.method, endpoint=endpoint).observe(duration)
+    return response
+
+
+@app.get("/metrics")
+def metrics() -> Response:
+    """Prometheus'un kazidigi metrik snapshot'i (istek sayisi + gecikme histogrami)."""
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 class ClassificationResponse(BaseModel):
