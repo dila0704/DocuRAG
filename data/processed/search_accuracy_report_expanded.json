@@ -1,0 +1,316 @@
+{
+  "config": {
+    "chunk_size": 300,
+    "chunk_overlap": 50,
+    "top_k": 3,
+    "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
+    "retrieval_mode": "hybrid (BM25+dense, RRF)",
+    "note": "DOC-34: orneklem 5 belgeden (tek kategori: talep formu) 15 belgeye (5 kategori: talep formu/fatura/sozlesme/dilekce) genisletildi. AYRI bir degerlendirme index'i (data/processed/eval_index.*) kullanildi -- production index'e (uygulamanin gercekten kullandigi) dokunulmadi."
+  },
+  "queries": [
+    {
+      "sorgu": "Ek monitor talebi olan kim?",
+      "tip": "dogal",
+      "beklenen_belge": "test_talep_01.png",
+      "top1_belge": "test_talep_05.png",
+      "top1_skor": 0.0328,
+      "hit@1": false,
+      "hit@3": true,
+      "rank": 2
+    },
+    {
+      "sorgu": "Log takibini kod yazimiyla eszamanli yurutmek isteyen kisi kim?",
+      "tip": "anlamsal",
+      "beklenen_belge": "test_talep_01.png",
+      "top1_belge": "test_talep_01.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Laptop talebinde bulunan kim?",
+      "tip": "dogal",
+      "beklenen_belge": "test_talep_02.png",
+      "top1_belge": "test_talep_02.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Cihazinin performansi dustugu icin verimliligi etkilenen calisan kim?",
+      "tip": "anlamsal",
+      "beklenen_belge": "test_talep_02.png",
+      "top1_belge": "test_talep_02.png",
+      "top1_skor": 0.0323,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Klavye degisikligi isteyen kim?",
+      "tip": "dogal",
+      "beklenen_belge": "test_talep_03.png",
+      "top1_belge": "test_talep_03.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Yazi yazarken zorlanan, donanimi arizali olan kisi kim?",
+      "tip": "anlamsal",
+      "beklenen_belge": "test_talep_03.png",
+      "top1_belge": "test_talep_03.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Yazici arizasi bildiren kim?",
+      "tip": "dogal",
+      "beklenen_belge": "test_talep_04.png",
+      "top1_belge": "test_talep_04.png",
+      "top1_skor": 0.0325,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Muhasebe departmaninda ortak kullanilan bir cihaz bozulmus, kim talep acti?",
+      "tip": "anlamsal",
+      "beklenen_belge": "test_talep_04.png",
+      "top1_belge": "test_talep_05.png",
+      "top1_skor": 0.032,
+      "hit@1": false,
+      "hit@3": true,
+      "rank": 2
+    },
+    {
+      "sorgu": "Ek ekran talebi olan kim?",
+      "tip": "dogal",
+      "beklenen_belge": "test_talep_05.png",
+      "top1_belge": "test_talep_05.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Tasarim verimliligini artirmak icin ikinci ekrana ihtiyac duyan kisi kim?",
+      "tip": "anlamsal",
+      "beklenen_belge": "test_talep_05.png",
+      "top1_belge": "test_talep_05.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Kırtasiye faturasını kim kesti?",
+      "tip": "dogal",
+      "beklenen_belge": "eval_fatura_ofis.png",
+      "top1_belge": "test_talep_01.png",
+      "top1_skor": 0.032,
+      "hit@1": false,
+      "hit@3": false,
+      "rank": null
+    },
+    {
+      "sorgu": "Ofis sarf malzemeleri icin duzenlenen fatura hangisi?",
+      "tip": "anlamsal",
+      "beklenen_belge": "eval_fatura_ofis.png",
+      "top1_belge": "test_talep_05.png",
+      "top1_skor": 0.032,
+      "hit@1": false,
+      "hit@3": false,
+      "rank": null
+    },
+    {
+      "sorgu": "Yazılım lisansı için kesilen fatura hangisi?",
+      "tip": "dogal",
+      "beklenen_belge": "eval_fatura_yazilim.png",
+      "top1_belge": "test_talep_01.png",
+      "top1_skor": 0.032,
+      "hit@1": false,
+      "hit@3": true,
+      "rank": 2
+    },
+    {
+      "sorgu": "Bulut depolama hizmeti icin odenen ucret nedir?",
+      "tip": "anlamsal",
+      "beklenen_belge": "eval_fatura_yazilim.png",
+      "top1_belge": "eval_fatura_yazilim.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Kargo/nakliye hizmeti icin kesilen fatura hangisi?",
+      "tip": "dogal",
+      "beklenen_belge": "eval_fatura_kargo.png",
+      "top1_belge": "eval_fatura_kargo.png",
+      "top1_skor": 0.0315,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Elli koli tasima islemi icin odenen tutar nedir?",
+      "tip": "anlamsal",
+      "beklenen_belge": "eval_fatura_kargo.png",
+      "top1_belge": "eval_fatura_kargo.png",
+      "top1_skor": 0.0323,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "KVKK danışmanlığı için imzalanan sözleşme hangisi?",
+      "tip": "dogal",
+      "beklenen_belge": "eval_sozlesme_danismanlik.png",
+      "top1_belge": "eval_sozlesme_danismanlik.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Veri gizliligi konusunda dis uzmandan destek alinan anlasma hangisi?",
+      "tip": "anlamsal",
+      "beklenen_belge": "eval_sozlesme_danismanlik.png",
+      "top1_belge": "eval_sozlesme_gizlilik.png",
+      "top1_skor": 0.0325,
+      "hit@1": false,
+      "hit@3": true,
+      "rank": 2
+    },
+    {
+      "sorgu": "Ofis için imzalanan kira sözleşmesi hangisi?",
+      "tip": "dogal",
+      "beklenen_belge": "eval_sozlesme_kira.png",
+      "top1_belge": "eval_dilekce_sikayet.png",
+      "top1_skor": 0.0323,
+      "hit@1": false,
+      "hit@3": false,
+      "rank": null
+    },
+    {
+      "sorgu": "Yuz yirmi metrekarelik bir alan icin yapilan kiralama anlasmasi hangisi?",
+      "tip": "anlamsal",
+      "beklenen_belge": "eval_sozlesme_kira.png",
+      "top1_belge": "test_talep_01.png",
+      "top1_skor": 0.0315,
+      "hit@1": false,
+      "hit@3": false,
+      "rank": null
+    },
+    {
+      "sorgu": "Beta test sürecinde imzalanan gizlilik sözleşmesi hangisi?",
+      "tip": "dogal",
+      "beklenen_belge": "eval_sozlesme_gizlilik.png",
+      "top1_belge": "eval_sozlesme_gizlilik.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Paylasilan bilgilerin ucuncu kisilerle paylasilmamasini saglayan anlasma hangisi?",
+      "tip": "anlamsal",
+      "beklenen_belge": "eval_sozlesme_gizlilik.png",
+      "top1_belge": "eval_sozlesme_gizlilik.png",
+      "top1_skor": 0.0325,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Yıllık izin talebiyle dilekçe veren kim?",
+      "tip": "dogal",
+      "beklenen_belge": "eval_dilekce_izin.png",
+      "top1_belge": "test_talep_01.png",
+      "top1_skor": 0.032,
+      "hit@1": false,
+      "hit@3": true,
+      "rank": 3
+    },
+    {
+      "sorgu": "Bes gunluk bir tatil icin izin isteyen calisan kim?",
+      "tip": "anlamsal",
+      "beklenen_belge": "eval_dilekce_izin.png",
+      "top1_belge": "eval_dilekce_izin.png",
+      "top1_skor": 0.0318,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Klima arızası için şikayet dilekçesi veren kim?",
+      "tip": "dogal",
+      "beklenen_belge": "eval_dilekce_sikayet.png",
+      "top1_belge": "eval_dilekce_sikayet.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Calisma ortamindaki bir donanim sorununu bildiren kisi kim?",
+      "tip": "anlamsal",
+      "beklenen_belge": "eval_dilekce_sikayet.png",
+      "top1_belge": "eval_talep_uzaktan_calisma.png",
+      "top1_skor": 0.0328,
+      "hit@1": false,
+      "hit@3": true,
+      "rank": 2
+    },
+    {
+      "sorgu": "Yazıcı toneri talep eden kim?",
+      "tip": "dogal",
+      "beklenen_belge": "eval_talep_ofis_malzeme.png",
+      "top1_belge": "eval_talep_ofis_malzeme.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Baski cihazi sarf malzemesi biten departman hangisi?",
+      "tip": "anlamsal",
+      "beklenen_belge": "eval_talep_ofis_malzeme.png",
+      "top1_belge": "eval_talep_ofis_malzeme.png",
+      "top1_skor": 0.032,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Uzaktan çalışma talebinde bulunan kim?",
+      "tip": "dogal",
+      "beklenen_belge": "eval_talep_uzaktan_calisma.png",
+      "top1_belge": "eval_talep_uzaktan_calisma.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    },
+    {
+      "sorgu": "Saglik durumu nedeniyle evden calismak isteyen kisi kim?",
+      "tip": "anlamsal",
+      "beklenen_belge": "eval_talep_uzaktan_calisma.png",
+      "top1_belge": "eval_talep_uzaktan_calisma.png",
+      "top1_skor": 0.0328,
+      "hit@1": true,
+      "hit@3": true,
+      "rank": 1
+    }
+  ],
+  "hit_at_1": 0.6666666666666666,
+  "hit_at_3": 0.8666666666666667,
+  "mrr": 0.7611111111111111,
+  "n_queries": 30
+}

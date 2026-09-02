@@ -104,66 +104,6 @@
     "human_review": false
   },
   {
-    "id": 5,
-    "chunk_id": 0,
-    "text": "FATURA\n\nFatura No: FTR-2026-0142\nTarih: 20.08.2026\nSatici: Kaya Ofis Malzemeleri Ltd. Sti.\nAlici: DocuRAG Yazilim A.S.\n\nAciklama: A4 kagit (10 koli), toner kartusu (4 adet)\nAra Toplam: 3.200,00 TL\nKDV (%20): 640,00 TL\nGenel Toplam: 3.840,00 TL\n\nOdeme Vadesi: 30 gun\nIBAN: TR33 0006 1005 1978 6457 8413 26",
-    "token_count": 150,
-    "source_doc": "ornek_fatura_upload.png",
-    "siniflar": [
-      "fatura"
-    ],
-    "guven": 0.98,
-    "etiketler": [
-      "fatura",
-      "ofis malzemeleri",
-      "kdv",
-      "ödeme vadesi",
-      "iban"
-    ],
-    "human_review": false,
-    "ingested_at": "2026-08-27T12:01:14.373260+00:00"
-  },
-  {
-    "id": 6,
-    "chunk_id": 0,
-    "text": "```\nFATURA\n\nFatura No: FTR-2026-0142\nTarih: 20.08.2026\nSatici: Kaya Ofis Malzemeleri Ltd. Sti.\nAlici: DocuRAG Yazilim A.S.\n\nAciklama: A4 kagit (10 koli), toner kartusu (4 adet)\nAra Toplam: 3.200,00 TL\nKDV (%20): 640,00 TL\nGenel Toplam: 3.840,00 TL\n\nOdeme Vadesi: 30 gun\nIBAN: TR33 0006 1005 1978 6457 8413 26\n```",
-    "token_count": 154,
-    "source_doc": "ornek_fatura_upload.png",
-    "siniflar": [
-      "fatura"
-    ],
-    "guven": 0.98,
-    "etiketler": [
-      "fatura",
-      "ofis malzemeleri",
-      "kdv",
-      "odeme vadesi",
-      "iban"
-    ],
-    "human_review": false,
-    "ingested_at": "2026-08-27T12:20:39.521350+00:00"
-  },
-  {
-    "id": 7,
-    "chunk_id": 0,
-    "text": "```\nFATURA\n\nFatura No: FTR-2026-0142\nTarih: 20.08.2026\nSatici: Kaya Ofis Malzemeleri Ltd. Sti.\nAlici: DocuRAG Yazilim A.S.\n\nAciklama: A4 kagit (10 koli), toner kartusu (4 adet)\nAra Toplam: 3.200,00 TL\nKDV (%20): 640,00 TL\nGenel Toplam: 3.840,00 TL\n\nOdeme Vadesi: 30 gun\nIBAN: TR33 0006 1005 1978 6457 8413 26\n```",
-    "token_count": 154,
-    "source_doc": "ornek_fatura_upload.png",
-    "siniflar": [
-      "fatura"
-    ],
-    "guven": 0.98,
-    "etiketler": [
-      "fatura",
-      "ofis malzemeleri",
-      "kdv",
-      "ödeme vadesi",
-      "iban"
-    ],
-    "human_review": false,
-    "ingested_at": "2026-08-28T11:53:47.148586+00:00"
-  },
-  {
     "id": 8,
     "chunk_id": 0,
     "text": "DONANIM TALEP FORMU\n\nTalep Eden: Dila Alpay\nTarih: 12.08.2026\nDepartman: Yazılım Geliştirme\nKonu: Ek Monitör Talebi\n\nAçıklama:\nGeliştirmekte olduğum yapay zeka destekli doküman analiz modülünün test işlemleri sırasında, log takibi ve kod yazımını eşzamanlı yürütebilmek amacıyla tarafıma 1 adet 27 inç monitör tahsis edilmesini rica ederim.\n\nİmza:",
@@ -181,5 +121,353 @@
     ],
     "human_review": false,
     "ingested_at": "2026-08-28T11:55:15.737441+00:00"
+  },
+  {
+    "id": 9,
+    "chunk_id": 0,
+    "text": "FATURA\n\nFatura No: FTR-2026-02001\nTarih: 05.08.2026\nSatici: Kirtasiye Dunyasi Ltd.\nAlici: Docurag Yazilim Ltd. Sti.\n\nUrun: A4 Kagit, Toner Kartusu, Dosya Klasoru\nToplam Tutar: 2.350 TL",
+    "token_count": 85,
+    "source_doc": "eval_fatura_ofis.png",
+    "siniflar": [
+      "fatura"
+    ],
+    "guven": 0.97,
+    "etiketler": [
+      "fatura",
+      "kirtasiye",
+      "satın alma",
+      "ödeme belgesi"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "05.08.2026",
+      "tutar": "2.350 TL",
+      "belge_no": "FTR-2026-02001",
+      "konu": "Kirtasiye malzemesi alim faturasi",
+      "taraflar": [
+        "Kirtasiye Dunyasi Ltd.",
+        "Docurag Yazilim Ltd. Sti."
+      ]
+    },
+    "ingested_at": "2026-09-02T10:40:41.245652+00:00"
+  },
+  {
+    "id": 10,
+    "chunk_id": 0,
+    "text": "FATURA\n\nFatura No: FTR-2026-02002\nTarih: 07.08.2026\nSatici: CloudSoft Yazilim A.S.\nAlici: Docurag Yazilim Ltd. Sti.\n\nUrun/Hizmet: Yillik Bulut Depolama Lisansi\nToplam Tutar: 18.000 TL",
+    "token_count": 82,
+    "source_doc": "eval_fatura_yazilim.png",
+    "siniflar": [
+      "fatura"
+    ],
+    "guven": 0.97,
+    "etiketler": [
+      "fatura",
+      "yazılım lisansı",
+      "bulut depolama",
+      "ticari belge"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "07.08.2026",
+      "tutar": "18.000 TL",
+      "belge_no": "FTR-2026-02002",
+      "konu": "Yillik Bulut Depolama Lisansi Faturasi",
+      "taraflar": [
+        "CloudSoft Yazilim A.S.",
+        "Docurag Yazilim Ltd. Sti."
+      ]
+    },
+    "ingested_at": "2026-09-02T10:41:05.458919+00:00"
+  },
+  {
+    "id": 11,
+    "chunk_id": 0,
+    "text": "```\nFATURA\n\nFatura No: FTR-2026-02003\nTarih: 09.08.2026\nSatici: HizliKargo Lojistik\nAlici: Docurag Yazilim Ltd. Sti.\n\nHizmet: Yurt Ici Nakliye (50 Koli)\nToplam Tutar: 4.750 TL\n```",
+    "token_count": 86,
+    "source_doc": "eval_fatura_kargo.png",
+    "siniflar": [
+      "fatura"
+    ],
+    "guven": 0.97,
+    "etiketler": [
+      "fatura no",
+      "nakliye",
+      "lojistik",
+      "yurt ici",
+      "tutar"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "09.08.2026",
+      "tutar": "4.750 TL",
+      "belge_no": "FTR-2026-02003",
+      "konu": "Yurt Ici Nakliye Faturasi",
+      "taraflar": [
+        "HizliKargo Lojistik",
+        "Docurag Yazilim Ltd. Sti."
+      ]
+    },
+    "ingested_at": "2026-09-02T10:41:16.488338+00:00"
+  },
+  {
+    "id": 12,
+    "chunk_id": 0,
+    "text": "```\nDANISMANLIK SOZLESMESI\n\nTaraflar: Docurag Yazilim Ltd. Sti. - Pinar Aydogan\nTarih: 01.08.2026\nKonu: Veri gizliligi ve KVKK uyum danismanligi\nSure: 6 ay\nUcret: Aylik 15.000 TL\n```",
+    "token_count": 86,
+    "source_doc": "eval_sozlesme_danismanlik.png",
+    "siniflar": [
+      "sözleşme"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "danışmanlık sözleşmesi",
+      "kvkk",
+      "veri gizliliği",
+      "hizmet sözleşmesi"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "01.08.2026",
+      "tutar": "15.000 TL",
+      "belge_no": null,
+      "konu": "Veri gizliligi ve KVKK uyum danismanligi",
+      "taraflar": [
+        "Docurag Yazilim Ltd. Sti.",
+        "Pinar Aydogan"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:41:28.673698+00:00"
+  },
+  {
+    "id": 13,
+    "chunk_id": 0,
+    "text": "KIRA SOZLESMESI\n\nTaraflar: Mulk Sahibi Kaan Ergin - Kiraci Docurag Yazilim Ltd. Sti.\nTarih: 15.07.2026\nKonu: Ofis Kirasi (Kadikoy, 120 m2)\nSure: 24 ay\nAylik Kira: 45.000 TL",
+    "token_count": 81,
+    "source_doc": "eval_sozlesme_kira.png",
+    "siniflar": [
+      "sözleşme"
+    ],
+    "guven": 0.95,
+    "etiketler": [
+      "kira sözleşmesi",
+      "ofis kirası",
+      "kadıköy",
+      "24 ay süreli"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "15.07.2026",
+      "tutar": "45.000 TL",
+      "belge_no": null,
+      "konu": "Ofis Kirasi (Kadikoy, 120 m2)",
+      "taraflar": [
+        "Kaan Ergin",
+        "Docurag Yazilim Ltd. Sti."
+      ]
+    },
+    "ingested_at": "2026-09-02T10:41:48.229611+00:00"
+  },
+  {
+    "id": 14,
+    "chunk_id": 0,
+    "text": "GIZLILIK SOZLESMESI (NDA)\n\nTaraflar: Docurag Yazilim Ltd. Sti. - BetaTest A.S.\nTarih: 03.08.2026\nKonu: Beta test surecinde paylasilan bilgilerin gizliligi\nSure: 3 yil",
+    "token_count": 75,
+    "source_doc": "eval_sozlesme_gizlilik.png",
+    "siniflar": [
+      "sözleşme"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "gizlilik sözleşmesi",
+      "nda",
+      "beta test",
+      "bilgi güvenliği"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "03.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Beta test gizlilik sozlesmesi",
+      "taraflar": [
+        "Docurag Yazilim Ltd. Sti.",
+        "BetaTest A.S."
+      ]
+    },
+    "ingested_at": "2026-09-02T10:42:00.283880+00:00"
+  },
+  {
+    "id": 15,
+    "chunk_id": 0,
+    "text": "DILEKCE\n\nMuhatap: Insan Kaynaklari Mudurlugu\nTarafimca 05.09.2026-09.09.2026 tarihleri arasinda yillik izin\nkullanilmak istenmektedir. Geregini rica ederim.\n\nAd Soyad: Burak Sen\nTarih: 20.08.2026",
+    "token_count": 86,
+    "source_doc": "eval_dilekce_izin.png",
+    "siniflar": [
+      "dilekçe"
+    ],
+    "guven": 0.92,
+    "etiketler": [
+      "yıllık izin",
+      "insan kaynakları",
+      "izin talebi",
+      "dilekçe"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "20.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Yillik izin talebi",
+      "taraflar": [
+        "Insan Kaynaklari Mudurlugu",
+        "Burak Sen"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:42:09.487710+00:00"
+  },
+  {
+    "id": 16,
+    "chunk_id": 0,
+    "text": "```\nDILEKCE\n\nMuhatap: Genel Mudurluk\nOfis klima sisteminin uzun suredir arizali olmasi nedeniyle\ncalisma kosullarinin olumsuz etkilendigini bildiririm.\nGeregini rica ederim.\n\nAd Soyad: Selin Kara\nTarih: 18.08.2026\n```",
+    "token_count": 87,
+    "source_doc": "eval_dilekce_sikayet.png",
+    "siniflar": [
+      "dilekçe"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "dilekçe",
+      "klima arızası",
+      "genel müdürlük",
+      "şikayet"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "18.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Ofis klima arizasi sikayeti",
+      "taraflar": [
+        "Genel Mudurluk",
+        "Selin Kara"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:42:24.241271+00:00"
+  },
+  {
+    "id": 17,
+    "chunk_id": 0,
+    "text": "OFIS MALZEMESI TALEP FORMU\n\nTalep Eden: Kerem Aksoy\nTarih: 11.08.2026\nDepartman: Finans\nKonu: Yazici Toneri Talebi\n\nAciklama:\nDepartmanimizdaki yazicinin toneri bitmek uzere, yeni toner\ntemin edilmesini rica ederim.",
+    "token_count": 88,
+    "source_doc": "eval_talep_ofis_malzeme.png",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.95,
+    "etiketler": [
+      "ofis malzemesi",
+      "yazıcı toneri",
+      "talep formu",
+      "finans departmanı"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "11.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Yazici Toneri Talebi",
+      "taraflar": [
+        "Kerem Aksoy",
+        "Finans"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:42:35.279747+00:00"
+  },
+  {
+    "id": 18,
+    "chunk_id": 0,
+    "text": "UZAKTAN CALISMA TALEP FORMU\n\nTalep Eden: Gizem Yildirim\nTarih: 19.08.2026\nDepartman: Pazarlama\nKonu: Uzaktan Calisma Talebi\n\nAciklama:\nSaglik nedeniyle onumuzdeki 2 hafta boyunca evden calismak\nistiyorum, onayinizi rica ederim.",
+    "token_count": 99,
+    "source_doc": "eval_talep_uzaktan_calisma.png",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.95,
+    "etiketler": [
+      "uzaktan çalışma",
+      "talep formu",
+      "insan kaynakları",
+      "izin talebi"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "19.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Uzaktan Calisma Talebi",
+      "taraflar": [
+        "Gizem Yildirim"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:42:48.166880+00:00"
+  },
+  {
+    "id": 19,
+    "chunk_id": 0,
+    "text": "```\nFATURA\n\nFatura No: FTR-2026-0142\nTarih: 20.08.2026\nSatici: Kaya Ofis Malzemeleri Ltd. Sti.\nAlici: DocuRAG Yazilim A.S.\n\nAciklama: A4 kagit (10 koli), toner kartusu (4 adet)\nAra Toplam: 3.200,00 TL\nKDV (%20): 640,00 TL\nGenel Toplam: 3.840,00 TL\n\nOdeme Vadesi: 30 gun\nIBAN: TR33 0006 1005 1978 6457 8413 26\n```",
+    "token_count": 154,
+    "source_doc": "ornek_fatura_upload.png",
+    "siniflar": [
+      "fatura"
+    ],
+    "guven": 0.98,
+    "etiketler": [
+      "ofis malzemesi",
+      "kdv",
+      "satın alma",
+      "ödeme vadesi"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "20.08.2026",
+      "tutar": "3.840,00 TL",
+      "belge_no": "FTR-2026-0142",
+      "konu": "Ofis malzemesi alimi faturasi",
+      "taraflar": [
+        "Kaya Ofis Malzemeleri Ltd. Sti.",
+        "DocuRAG Yazilim A.S."
+      ]
+    },
+    "ingested_at": "2026-09-02T11:00:52.885521+00:00"
+  },
+  {
+    "id": 20,
+    "chunk_id": 0,
+    "text": "DONANIM TALEP FORMU\n\nTalep Eden: ...............\nTarih: 2026/0.../..\nDepartman: Bilgi Islem\nKonu: ...............\n\nAciklama:\n... miktar bilgisi okunamiyor ...\ntalep edilen urun kismi hasarli\n\nImza: [lekeli/okunamiyor]",
+    "token_count": 81,
+    "source_doc": "demo_hasarli_belge.png",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.55,
+    "etiketler": [
+      "donanım talebi",
+      "bilgi işlem",
+      "talep formu",
+      "hasarlı ürün",
+      "eksik bilgi"
+    ],
+    "human_review": true,
+    "alanlar": {
+      "tarih": "2026/0.../..",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Donanim Talep Formu",
+      "taraflar": [
+        "Bilgi Islem"
+      ]
+    },
+    "ingested_at": "2026-09-02T11:25:07.286431+00:00"
   }
 ]

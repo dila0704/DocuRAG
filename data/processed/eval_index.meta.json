@@ -1,0 +1,435 @@
+[
+  {
+    "id": 0,
+    "chunk_id": 0,
+    "text": "```\nDONANIM TALEP FORMU\n\nTalep Eden: Dila Alpay\nTarih: 12.08.2026\nDepartman: Yazılım Geliştirme\nKonu: Ek Monitör Talebi\n\nAçıklama:\nGeliştirmekte olduğum yapay zeka destekli doküman analiz modülünün test işlemleri sırasında, log takibi ve kod yazımını eşzamanlı yürütebilmek amacıyla tarafıma 1 adet 27 inç monitör tahsis edilmesini rica ederim.\n\nİmza:\n```",
+    "token_count": 146,
+    "source_doc": "test_talep_01.png",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.95,
+    "etiketler": [
+      "donanım talebi",
+      "monitör talebi",
+      "yazılım departmanı",
+      "iç yazışma"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "12.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Ek Monitör Talebi",
+      "taraflar": [
+        "Dila Alpay"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:23:30.875496+00:00"
+  },
+  {
+    "id": 1,
+    "chunk_id": 0,
+    "text": "```\nDONANIM TALEP FORMU\n\nTalep Eden: Ahmet Yilmaz\nTarih: 13.08.2026\nDepartman: Insan Kaynaklari\nKonu: Yeni Laptop Talebi\n\nAciklama:\nMevcut laptopumun performans sorunlari nedeniyle is verimliligimi\netkilemektedir. Tarafima yeni bir laptop tahsis edilmesini rica ederim.\n\nImza:\n```",
+    "token_count": 108,
+    "source_doc": "test_talep_02.png",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "donanım talebi",
+      "laptop",
+      "insan kaynakları",
+      "iç talep formu"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "13.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Yeni Laptop Talebi",
+      "taraflar": [
+        "Ahmet Yilmaz",
+        "Insan Kaynaklari"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:23:51.170898+00:00"
+  },
+  {
+    "id": 2,
+    "chunk_id": 0,
+    "text": "```\nDONANIM TALEP FORMU\n\nTalep Eden: Zeynep Kaya\nTarih: 14.08.2026\nKonu: Klavye Degisimi\n\nAciklama:\nKlavyemdeki birkac tus arizali. Yeni bir klavye talep ediyorum.\n\nImza:\n```",
+    "token_count": 78,
+    "source_doc": "test_talep_03.png",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.95,
+    "etiketler": [
+      "donanım talebi",
+      "klavye değişimi",
+      "arıza bildirimi",
+      "iç talep formu"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "14.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Klavye Degisimi Talebi",
+      "taraflar": [
+        "Zeynep Kaya"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:24:02.706463+00:00"
+  },
+  {
+    "id": 3,
+    "chunk_id": 0,
+    "text": "```\nDONANIM TALEP FORMU\n\nTalep Eden: Mehmet Demir\nTarih: 15 Agustos 2026\nDepartman: Muhasebe\nKonu: Yazici Talebi\n\nAciklama:\nDepartmanimizda ortak kullanilan yazici arizalandi. Yeni bir yazici\ntemin edilmesini rica ederim.\n\nImza:\n```",
+    "token_count": 91,
+    "source_doc": "test_talep_04.png",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.95,
+    "etiketler": [
+      "donanım talebi",
+      "yazıcı",
+      "muhasebe departmanı",
+      "arıza bildirimi"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "15 Agustos 2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Yazici Talebi",
+      "taraflar": [
+        "Mehmet Demir",
+        "Muhasebe"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:24:15.432562+00:00"
+  },
+  {
+    "id": 4,
+    "chunk_id": 0,
+    "text": "```\nDONANIM TALEP FORMU\n\nTalep Eden: Elif Sahin\nTarih: 2026/08/16\nDepartman: Pazarlama\nKonu: Ek Ekran Talebi\n\nAciklama:\nTasarim islerinde verimliligi artirmak icin ikinci bir ekrana\nihtiyacim var.\n\nImza:\n```",
+    "token_count": 86,
+    "source_doc": "test_talep_05.png",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "donanım talebi",
+      "ek ekran",
+      "pazarlama departmanı",
+      "talep formu"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "2026/08/16",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Ek Ekran Talebi",
+      "taraflar": [
+        "Elif Sahin",
+        "Pazarlama"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:24:25.436230+00:00"
+  },
+  {
+    "id": 5,
+    "chunk_id": 0,
+    "text": "FATURA\n\nFatura No: FTR-2026-02001\nTarih: 05.08.2026\nSatici: Kirtasiye Dunyasi Ltd.\nAlici: Docurag Yazilim Ltd. Sti.\n\nUrun: A4 Kagit, Toner Kartusu, Dosya Klasoru\nToplam Tutar: 2.350 TL",
+    "token_count": 85,
+    "source_doc": "eval_fatura_ofis.png",
+    "siniflar": [
+      "fatura"
+    ],
+    "guven": 0.97,
+    "etiketler": [
+      "fatura",
+      "kırtasiye",
+      "satın alma",
+      "ticari belge"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "05.08.2026",
+      "tutar": "2.350 TL",
+      "belge_no": "FTR-2026-02001",
+      "konu": "Kirtasiye malzemeleri faturasi",
+      "taraflar": [
+        "Kirtasiye Dunyasi Ltd.",
+        "Docurag Yazilim Ltd. Sti."
+      ]
+    },
+    "ingested_at": "2026-09-02T10:24:36.446218+00:00"
+  },
+  {
+    "id": 6,
+    "chunk_id": 0,
+    "text": "```\nFATURA\n\nFatura No: FTR-2026-02002\nTarih: 07.08.2026\nSatici: CloudSoft Yazilim A.S.\nAlici: Docurag Yazilim Ltd. Sti.\n\nUrun/Hizmet: Yillik Bulut Depolama Lisansi\nToplam Tutar: 18.000 TL\n```",
+    "token_count": 86,
+    "source_doc": "eval_fatura_yazilim.png",
+    "siniflar": [
+      "fatura"
+    ],
+    "guven": 0.97,
+    "etiketler": [
+      "fatura",
+      "bulut depolama",
+      "yazılım lisansı",
+      "yıllık ödeme"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "07.08.2026",
+      "tutar": "18.000 TL",
+      "belge_no": "FTR-2026-02002",
+      "konu": "Yillik Bulut Depolama Lisansi Faturasi",
+      "taraflar": [
+        "CloudSoft Yazilim A.S.",
+        "Docurag Yazilim Ltd. Sti."
+      ]
+    },
+    "ingested_at": "2026-09-02T10:24:49.657752+00:00"
+  },
+  {
+    "id": 7,
+    "chunk_id": 0,
+    "text": "FATURA\n\nFatura No: FTR-2026-02003\nTarih: 09.08.2026\nSatici: HizliKargo Lojistik\nAlici: Docurag Yazilim Ltd. Sti.\n\nHizmet: Yurt Ici Nakliye (50 Koli)\nToplam Tutar: 4.750 TL",
+    "token_count": 82,
+    "source_doc": "eval_fatura_kargo.png",
+    "siniflar": [
+      "fatura"
+    ],
+    "guven": 0.97,
+    "etiketler": [
+      "fatura",
+      "nakliye",
+      "lojistik",
+      "yurt içi kargo",
+      "ticari belge"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "09.08.2026",
+      "tutar": "4.750 TL",
+      "belge_no": "FTR-2026-02003",
+      "konu": "Yurt Ici Nakliye Faturasi",
+      "taraflar": [
+        "HizliKargo Lojistik",
+        "Docurag Yazilim Ltd. Sti."
+      ]
+    },
+    "ingested_at": "2026-09-02T10:25:01.859256+00:00"
+  },
+  {
+    "id": 8,
+    "chunk_id": 0,
+    "text": "```\nDANISMANLIK SOZLESMESI\n\nTaraflar: Docurag Yazilim Ltd. Sti. - Pinar Aydogan\nTarih: 01.08.2026\nKonu: Veri gizliligi ve KVKK uyum danismanligi\nSure: 6 ay\nUcret: Aylik 15.000 TL\n```",
+    "token_count": 86,
+    "source_doc": "eval_sozlesme_danismanlik.png",
+    "siniflar": [
+      "sözleşme"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "danışmanlık sözleşmesi",
+      "kvkk uyum",
+      "veri gizliliği",
+      "aylık ücret"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "01.08.2026",
+      "tutar": "15.000 TL",
+      "belge_no": null,
+      "konu": "Veri gizliligi ve KVKK uyum danismanligi",
+      "taraflar": [
+        "Docurag Yazilim Ltd. Sti.",
+        "Pinar Aydogan"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:25:14.944040+00:00"
+  },
+  {
+    "id": 9,
+    "chunk_id": 0,
+    "text": "```\nKIRA SOZLESMESI\n\nTaraflar: Mulk Sahibi Kaan Ergin - Kiraci Docurag Yazilim Ltd. Sti.\nTarih: 15.07.2026\nKonu: Ofis Kirasi (Kadikoy, 120 m2)\nSure: 24 ay\nAylik Kira: 45.000 TL\n```",
+    "token_count": 85,
+    "source_doc": "eval_sozlesme_kira.png",
+    "siniflar": [
+      "sözleşme"
+    ],
+    "guven": 0.95,
+    "etiketler": [
+      "kira sözleşmesi",
+      "ofis kirası",
+      "gayrimenkul",
+      "kadıköy"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "15.07.2026",
+      "tutar": "45.000 TL",
+      "belge_no": null,
+      "konu": "Ofis Kira Sozlesmesi (Kadikoy)",
+      "taraflar": [
+        "Kaan Ergin",
+        "Docurag Yazilim Ltd. Sti."
+      ]
+    },
+    "ingested_at": "2026-09-02T10:25:26.948243+00:00"
+  },
+  {
+    "id": 10,
+    "chunk_id": 0,
+    "text": "GIZLILIK SOZLESMESI (NDA)\n\nTaraflar: Docurag Yazilim Ltd. Sti. - BetaTest A.S.\nTarih: 03.08.2026\nKonu: Beta test surecinde paylasilan bilgilerin gizliligi\nSure: 3 yil",
+    "token_count": 75,
+    "source_doc": "eval_sozlesme_gizlilik.png",
+    "siniflar": [
+      "sözleşme"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "gizlilik sözleşmesi",
+      "nda",
+      "beta test",
+      "bilgi güvenliği"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "03.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Beta test gizlilik sozlesmesi",
+      "taraflar": [
+        "Docurag Yazilim Ltd. Sti.",
+        "BetaTest A.S."
+      ]
+    },
+    "ingested_at": "2026-09-02T10:25:38.585676+00:00"
+  },
+  {
+    "id": 11,
+    "chunk_id": 0,
+    "text": "DILEKCE\n\nMuhatap: Insan Kaynaklari Mudurlugu\nTarafimca 05.09.2026-09.09.2026 tarihleri arasinda yillik izin\nkullanilmak istenmektedir. Geregini rica ederim.\n\nAd Soyad: Burak Sen\nTarih: 20.08.2026",
+    "token_count": 86,
+    "source_doc": "eval_dilekce_izin.png",
+    "siniflar": [
+      "dilekçe"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "yıllık izin",
+      "insan kaynakları",
+      "izin talebi",
+      "personel dilekçesi"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "20.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Yillik izin talebi",
+      "taraflar": [
+        "Insan Kaynaklari Mudurlugu",
+        "Burak Sen"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:25:49.516915+00:00"
+  },
+  {
+    "id": 12,
+    "chunk_id": 0,
+    "text": "```\nDILEKCE\n\nMuhatap: Genel Mudurluk\nOfis klima sisteminin uzun suredir arizali olmasi nedeniyle\ncalisma kosullarinin olumsuz etkilendigini bildiririm.\nGeregini rica ederim.\n\nAd Soyad: Selin Kara\nTarih: 18.08.2026\n```",
+    "token_count": 87,
+    "source_doc": "eval_dilekce_sikayet.png",
+    "siniflar": [
+      "dilekçe"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "dilekçe",
+      "klima arızası",
+      "şikayet",
+      "genel müdürlük"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "18.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Ofis klima arizasi sikayeti",
+      "taraflar": [
+        "Genel Mudurluk",
+        "Selin Kara"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:26:04.607631+00:00"
+  },
+  {
+    "id": 13,
+    "chunk_id": 0,
+    "text": "OFIS MALZEMESI TALEP FORMU\n\nTalep Eden: Kerem Aksoy\nTarih: 11.08.2026\nDepartman: Finans\nKonu: Yazici Toneri Talebi\n\nAciklama:\nDepartmanimizdaki yazicinin toneri bitmek uzere, yeni toner\ntemin edilmesini rica ederim.",
+    "token_count": 88,
+    "source_doc": "eval_talep_ofis_malzeme.png",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.95,
+    "etiketler": [
+      "ofis malzemesi",
+      "yazıcı toneri",
+      "talep formu",
+      "finans departmanı"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "11.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Yazici Toneri Talebi",
+      "taraflar": [
+        "Kerem Aksoy",
+        "Finans"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:26:15.285776+00:00"
+  },
+  {
+    "id": 14,
+    "chunk_id": 0,
+    "text": "```\nUZAKTAN CALISMA TALEP FORMU\n\nTalep Eden: Gizem Yildirim\nTarih: 19.08.2026\nDepartman: Pazarlama\nKonu: Uzaktan Calisma Talebi\n\nAciklama:\nSaglik nedeniyle onumuzdeki 2 hafta boyunca evden calismak\nistiyorum, onayinizi rica ederim.\n```",
+    "token_count": 102,
+    "source_doc": "eval_talep_uzaktan_calisma.png",
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.92,
+    "etiketler": [
+      "uzaktan çalışma",
+      "izin talebi",
+      "insan kaynakları",
+      "onay talebi"
+    ],
+    "human_review": false,
+    "alanlar": {
+      "tarih": "19.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Uzaktan Calisma Talebi",
+      "taraflar": [
+        "Gizem Yildirim"
+      ]
+    },
+    "ingested_at": "2026-09-02T10:26:27.982784+00:00"
+  }
+]

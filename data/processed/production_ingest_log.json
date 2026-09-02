@@ -1,0 +1,292 @@
+{
+  "eval_fatura_ofis.png": {
+    "duration_s": 19.91,
+    "source_doc": "eval_fatura_ofis.png",
+    "num_chunks": 1,
+    "classification": {
+      "siniflar": [
+        "fatura"
+      ],
+      "guven": 0.97,
+      "etiketler": [
+        "fatura",
+        "kirtasiye",
+        "satın alma",
+        "ödeme belgesi"
+      ],
+      "gerekce": "Belge fatura no, tarih, satıcı-alıcı bilgileri ve toplam tutar içeren tipik bir fatura formatındadır.",
+      "human_review": false
+    },
+    "fields": {
+      "tarih": "05.08.2026",
+      "tutar": "2.350 TL",
+      "belge_no": "FTR-2026-02001",
+      "konu": "Kirtasiye malzemesi alim faturasi",
+      "taraflar": [
+        "Kirtasiye Dunyasi Ltd.",
+        "Docurag Yazilim Ltd. Sti."
+      ]
+    }
+  },
+  "eval_fatura_yazilim.png": {
+    "duration_s": 17.05,
+    "source_doc": "eval_fatura_yazilim.png",
+    "num_chunks": 1,
+    "classification": {
+      "siniflar": [
+        "fatura"
+      ],
+      "guven": 0.97,
+      "etiketler": [
+        "fatura",
+        "yazılım lisansı",
+        "bulut depolama",
+        "ticari belge"
+      ],
+      "gerekce": "Belge fatura no, tarih, satici, alici ve tutar bilgileri iceren tipik bir fatura formatindadir.",
+      "human_review": false
+    },
+    "fields": {
+      "tarih": "07.08.2026",
+      "tutar": "18.000 TL",
+      "belge_no": "FTR-2026-02002",
+      "konu": "Yillik Bulut Depolama Lisansi Faturasi",
+      "taraflar": [
+        "CloudSoft Yazilim A.S.",
+        "Docurag Yazilim Ltd. Sti."
+      ]
+    }
+  },
+  "eval_fatura_kargo.png": {
+    "duration_s": 11.04,
+    "source_doc": "eval_fatura_kargo.png",
+    "num_chunks": 1,
+    "classification": {
+      "siniflar": [
+        "fatura"
+      ],
+      "guven": 0.97,
+      "etiketler": [
+        "fatura no",
+        "nakliye",
+        "lojistik",
+        "yurt ici",
+        "tutar"
+      ],
+      "gerekce": "Belge fatura no, tarih, satici-alici bilgisi ve toplam tutar iceren standart bir fatura formatindadir.",
+      "human_review": false
+    },
+    "fields": {
+      "tarih": "09.08.2026",
+      "tutar": "4.750 TL",
+      "belge_no": "FTR-2026-02003",
+      "konu": "Yurt Ici Nakliye Faturasi",
+      "taraflar": [
+        "HizliKargo Lojistik",
+        "Docurag Yazilim Ltd. Sti."
+      ]
+    }
+  },
+  "eval_sozlesme_danismanlik.png": {
+    "duration_s": 12.18,
+    "source_doc": "eval_sozlesme_danismanlik.png",
+    "num_chunks": 1,
+    "classification": {
+      "siniflar": [
+        "sözleşme"
+      ],
+      "guven": 0.9,
+      "etiketler": [
+        "danışmanlık sözleşmesi",
+        "kvkk",
+        "veri gizliliği",
+        "hizmet sözleşmesi"
+      ],
+      "gerekce": "Belge taraflar, süre ve ücret bilgisi içeren bir danışmanlık sözleşmesi niteliğindedir.",
+      "human_review": false
+    },
+    "fields": {
+      "tarih": "01.08.2026",
+      "tutar": "15.000 TL",
+      "belge_no": null,
+      "konu": "Veri gizliligi ve KVKK uyum danismanligi",
+      "taraflar": [
+        "Docurag Yazilim Ltd. Sti.",
+        "Pinar Aydogan"
+      ]
+    }
+  },
+  "eval_sozlesme_kira.png": {
+    "duration_s": 19.56,
+    "source_doc": "eval_sozlesme_kira.png",
+    "num_chunks": 1,
+    "classification": {
+      "siniflar": [
+        "sözleşme"
+      ],
+      "guven": 0.95,
+      "etiketler": [
+        "kira sözleşmesi",
+        "ofis kirası",
+        "kadıköy",
+        "24 ay süreli"
+      ],
+      "gerekce": "Belge, mülk sahibi ve kiracı taraflar arasında ofis kirasına ilişkin süre ve bedel içeren bir kira sözleşmesidir.",
+      "human_review": false
+    },
+    "fields": {
+      "tarih": "15.07.2026",
+      "tutar": "45.000 TL",
+      "belge_no": null,
+      "konu": "Ofis Kirasi (Kadikoy, 120 m2)",
+      "taraflar": [
+        "Kaan Ergin",
+        "Docurag Yazilim Ltd. Sti."
+      ]
+    }
+  },
+  "eval_sozlesme_gizlilik.png": {
+    "duration_s": 12.04,
+    "source_doc": "eval_sozlesme_gizlilik.png",
+    "num_chunks": 1,
+    "classification": {
+      "siniflar": [
+        "sözleşme"
+      ],
+      "guven": 0.9,
+      "etiketler": [
+        "gizlilik sözleşmesi",
+        "nda",
+        "beta test",
+        "bilgi güvenliği"
+      ],
+      "gerekce": "Belge, iki taraf arasinda gizlilik yukumlulugunu ve suresini belirleyen bir NDA sozlesmesidir.",
+      "human_review": false
+    },
+    "fields": {
+      "tarih": "03.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Beta test gizlilik sozlesmesi",
+      "taraflar": [
+        "Docurag Yazilim Ltd. Sti.",
+        "BetaTest A.S."
+      ]
+    }
+  },
+  "eval_dilekce_izin.png": {
+    "duration_s": 9.2,
+    "source_doc": "eval_dilekce_izin.png",
+    "num_chunks": 1,
+    "classification": {
+      "siniflar": [
+        "dilekçe"
+      ],
+      "guven": 0.92,
+      "etiketler": [
+        "yıllık izin",
+        "insan kaynakları",
+        "izin talebi",
+        "dilekçe"
+      ],
+      "gerekce": "Belge, İnsan Kaynakları Müdürlüğüne hitaben yazılmış yıllık izin talebini içeren resmi bir dilekçedir.",
+      "human_review": false
+    },
+    "fields": {
+      "tarih": "20.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Yillik izin talebi",
+      "taraflar": [
+        "Insan Kaynaklari Mudurlugu",
+        "Burak Sen"
+      ]
+    }
+  },
+  "eval_dilekce_sikayet.png": {
+    "duration_s": 14.75,
+    "source_doc": "eval_dilekce_sikayet.png",
+    "num_chunks": 1,
+    "classification": {
+      "siniflar": [
+        "dilekçe"
+      ],
+      "guven": 0.9,
+      "etiketler": [
+        "dilekçe",
+        "klima arızası",
+        "genel müdürlük",
+        "şikayet"
+      ],
+      "gerekce": "Belge, bir kişinin genel müdürlüğe hitaben yazdığı, sorunu bildirip talepte bulunduğu resmi dilekçe formatındadır.",
+      "human_review": false
+    },
+    "fields": {
+      "tarih": "18.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Ofis klima arizasi sikayeti",
+      "taraflar": [
+        "Genel Mudurluk",
+        "Selin Kara"
+      ]
+    }
+  },
+  "eval_talep_ofis_malzeme.png": {
+    "duration_s": 11.05,
+    "source_doc": "eval_talep_ofis_malzeme.png",
+    "num_chunks": 1,
+    "classification": {
+      "siniflar": [
+        "talep formu"
+      ],
+      "guven": 0.95,
+      "etiketler": [
+        "ofis malzemesi",
+        "yazıcı toneri",
+        "talep formu",
+        "finans departmanı"
+      ],
+      "gerekce": "Belge, bir departmanin ofis malzemesi (toner) temini icin doldurdugu talep formu niteligindedir.",
+      "human_review": false
+    },
+    "fields": {
+      "tarih": "11.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Yazici Toneri Talebi",
+      "taraflar": [
+        "Kerem Aksoy",
+        "Finans"
+      ]
+    }
+  },
+  "eval_talep_uzaktan_calisma.png": {
+    "duration_s": 12.89,
+    "source_doc": "eval_talep_uzaktan_calisma.png",
+    "num_chunks": 1,
+    "classification": {
+      "siniflar": [
+        "talep formu"
+      ],
+      "guven": 0.95,
+      "etiketler": [
+        "uzaktan çalışma",
+        "talep formu",
+        "insan kaynakları",
+        "izin talebi"
+      ],
+      "gerekce": "Belge, çalışanın sağlık nedeniyle uzaktan çalışma izni istediği ve onay talep ettiği bir talep formu niteliğindedir.",
+      "human_review": false
+    },
+    "fields": {
+      "tarih": "19.08.2026",
+      "tutar": null,
+      "belge_no": null,
+      "konu": "Uzaktan Calisma Talebi",
+      "taraflar": [
+        "Gizem Yildirim"
+      ]
+    }
+  }
+}
