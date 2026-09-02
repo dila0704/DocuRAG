@@ -55,7 +55,14 @@ st.caption(f"{len(pending)} belge onay bekliyor")
 ordered = sorted(pending.items(), key=lambda kv: kv[1]["guven"] if isinstance(kv[1]["guven"], (int, float)) else 0)
 
 
-def _apply_update(doc: str, updates: dict) -> None:
+def _apply_update(doc: str, original: dict, updates: dict, text_snippet: str) -> None:
+    # DOC-34: duzeltme, orijinal tahminden gercekten farkliysa (siniflar/etiketler)
+    # data/processed/human_corrections.jsonl'a eklenir -- classify_document(
+    # use_few_shot=True) bunu gelecekteki cagrilarda ornek olarak kullanabilir
+    # (bkz. classifier.record_correction). Bu cagri asla ana akisi kesmez
+    # (I/O hatasi icte yutulur, bkz. record_correction docstring'i).
+    classifier.record_correction(doc, original, updates, text_snippet=text_snippet)
+
     _, current_metadata = vector_store.load_index(index_path)
     updated_metadata = vector_store.update_metadata_by_source_doc(current_metadata, doc, updates)
     vector_store.save_metadata(updated_metadata, index_path)
@@ -113,11 +120,16 @@ def _render_tile(doc: str, info: dict, is_hero: bool) -> None:
                 key=f"tags_{doc}",
             )
             if st.button("Onayla", key=f"approve_{doc}", type="primary"):
-                _apply_update(doc, {
-                    "siniflar": selected or [classifier.FALLBACK_CATEGORY],
-                    "etiketler": [t.strip() for t in tags_raw.split(",") if t.strip()],
-                    "human_review": False,
-                })
+                _apply_update(
+                    doc,
+                    original={"siniflar": info["siniflar"], "etiketler": info["etiketler"]},
+                    updates={
+                        "siniflar": selected or [classifier.FALLBACK_CATEGORY],
+                        "etiketler": [t.strip() for t in tags_raw.split(",") if t.strip()],
+                        "human_review": False,
+                    },
+                    text_snippet=raw_text,
+                )
 
             st.divider()
             st.caption("Belgeyi tamamen sil")

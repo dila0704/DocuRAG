@@ -200,6 +200,45 @@ class LLMClient(ABC):
         loglama/sure olcumu/retry sarmalanmis sekilde cagrilir."""
         raise NotImplementedError
 
+    def generate_structured(
+        self,
+        system_prompt: str,
+        user_message: str,
+        schema: dict,
+        tool_name: str = "return_result",
+        tool_description: str = "Yapilandirilmis sonucu dondur.",
+        max_tokens: int = 512,
+        temperature: float = 0.0,
+        max_retries: int | None = None,
+        retry_backoff_base: float | None = None,
+        max_json_attempts: int = 2,
+    ) -> dict:
+        """Semaya uyan bir dict dondurur -- VARSAYILAN (fallback) davranis budur.
+
+        Bu taban-sinif implementasyonu, saglayicinin gercek "structured
+        output"/tool_use/function-calling desteklemedigi durumlar icindir
+        (orn. LocalHFClient -- transformers'in Auto siniflari boyle bir API
+        sunmuyor): eski "JSON iste, bozuksa modelden duzeltmesini iste"
+        desenine (llm_json_utils.generate_and_parse_json) duser. `schema`/
+        `tool_name`/`tool_description` bu yolda KULLANILMAZ (imzada sadece
+        tutarlilik icin var) -- semayi API SEVIYESINDE zorunlu kilan gercek
+        implementasyon AnthropicClient/OpenAIClient'ta override edilir
+        (bkz. asagida): boylece classifier.py/field_extractor.py/answer.py
+        hangi saglayicinin aktif oldugunu hic bilmeden ayni
+        `client.generate_structured(...)` cagrisini yapabilir.
+        """
+        from llm_json_utils import generate_and_parse_json  # gecikmeli import: llm_json_utils bu moduldeki LLMClient'i import ediyor (dongusel importu onler)
+
+        return generate_and_parse_json(
+            client=self,
+            system_prompt=system_prompt,
+            user_message=user_message,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            max_json_attempts=max_json_attempts,
+            caller_name=f"{type(self).__name__}.generate_structured(fallback)",
+        )
+
 
 class AnthropicClient(LLMClient):
     """Cloud saglayici: Anthropic (Claude). classifier.py'deki mevcut
@@ -244,6 +283,108 @@ class AnthropicClient(LLMClient):
         )
         return "".join(block.text for block in response.content if block.type == "text")
 
+    def generate_structured(
+        self,
+        system_prompt: str,
+        user_message: str,
+        schema: dict,
+        tool_name: str = "return_result",
+        tool_description: str = "Yapilandirilmis sonucu dondur.",
+        max_tokens: int = 512,
+        temperature: float = 0.0,
+        max_retries: int | None = None,
+        retry_backoff_base: float | None = None,
+        max_json_attempts: int = 2,
+    ) -> dict:
+        """Anthropic'in tool_use ozelligiyle semayi API SEVIYESINDE zorunlu
+        kilar (DOC-34): `tool_choice` ile model SADECE `tool_name` aracini
+        cagirmaya zorlanir, donen `tool_use` blogunun `.input` alani zaten
+        ayristirilmis bir dict'tir -- ayri bir JSON-string ayristirma/retry
+        dongusune (llm_json_utils) hic gerek kalmaz. `max_json_attempts`
+        parametresi burada KULLANILMAZ (imzada sadece taban sinifla/diger
+        cagiranlarla tutarlilik icin var); yeniden deneme `max_retries` ile
+        yonetilir (generate()'daki AYNI retry/backoff semantigi)."""
+        import anthropic
+
+        max_retries = self.DEFAULT_MAX_RETRIES if max_retries is None else max_retries
+        retry_backoff_base = self.DEFAULT_RETRY_BACKOFF_BASE if retry_backoff_base is None else retry_backoff_base
+        total_attempts = max_retries + 1
+
+        tools = [{"name": tool_name, "description": tool_description, "input_schema": schema}]
+        request_kwargs = dict(
+            model=self.model_name,
+            max_tokens=max_tokens,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_message}],
+            tools=tools,
+            tool_choice={"type": "tool", "name": tool_name},
+        )
+
+        last_exc: Exception | None = None
+        for attempt in range(total_attempts):
+            t0 = time.time()
+            logger.info(
+                "generate_structured basladi: provider=AnthropicClient model=%s tool=%s deneme=%d/%d",
+                self.model_name, tool_name, attempt + 1, total_attempts,
+            )
+            try:
+                try:
+                    response = self._client.messages.create(temperature=temperature, **request_kwargs)
+                except anthropic.BadRequestError as exc:
+                    # AynI "temperature deprecated" durumu generate()'daki gibi
+                    # (bkz. _generate) burada da olusabilir.
+                    if "temperature" in str(exc).lower() and "deprecated" in str(exc).lower():
+                        response = self._client.messages.create(**request_kwargs)
+                    else:
+                        raise
+            except Exception as exc:
+                last_exc = exc
+                logger.exception(
+                    "generate_structured basarisiz (deneme %d/%d): provider=AnthropicClient model=%s sure=%.2fsn",
+                    attempt + 1, total_attempts, self.model_name, time.time() - t0,
+                )
+                if attempt < max_retries:
+                    time.sleep(retry_backoff_base * (2 ** attempt))
+                    continue
+                raise RuntimeError(
+                    f"generate_structured {total_attempts} denemeden sonra basarisiz oldu (tool={tool_name})."
+                ) from last_exc
+
+            duration = time.time() - t0
+            usage_obj = getattr(response, "usage", None)
+            usage = (
+                {"input_tokens": getattr(usage_obj, "input_tokens", None), "output_tokens": getattr(usage_obj, "output_tokens", None)}
+                if usage_obj is not None else None
+            )
+            cost_usd = _estimate_cost_usd(self.model_name, *(
+                (usage.get("input_tokens"), usage.get("output_tokens")) if usage else (None, None)
+            ))
+            _append_usage_log("AnthropicClient", self.model_name, usage, cost_usd, duration)
+
+            tool_block = next(
+                (b for b in response.content if getattr(b, "type", None) == "tool_use" and getattr(b, "name", None) == tool_name),
+                None,
+            )
+            if tool_block is None:
+                logger.warning(
+                    "generate_structured: model beklenen tool_use blogunu dondurmedi (deneme %d/%d, tool=%s).",
+                    attempt + 1, total_attempts, tool_name,
+                )
+                if attempt < max_retries:
+                    time.sleep(retry_backoff_base * (2 ** attempt))
+                    continue
+                raise RuntimeError(
+                    f"generate_structured: model '{tool_name}' aracini hicbir denemede cagirmadi."
+                )
+
+            logger.info(
+                "generate_structured tamamlandi: provider=AnthropicClient model=%s tool=%s sure=%.2fsn",
+                self.model_name, tool_name, duration,
+            )
+            return dict(tool_block.input)
+
+        raise AssertionError("generate_structured: erisilmemesi gereken kod yolu")  # pragma: no cover
+
 
 class OpenAIClient(LLMClient):
     """Cloud saglayici: OpenAI (orn. gpt_4). Ticket ornegindeki `model: gpt_4`
@@ -271,6 +412,112 @@ class OpenAIClient(LLMClient):
             if usage_obj is not None else None
         )
         return response.choices[0].message.content or ""
+
+    def generate_structured(
+        self,
+        system_prompt: str,
+        user_message: str,
+        schema: dict,
+        tool_name: str = "return_result",
+        tool_description: str = "Yapilandirilmis sonucu dondur.",
+        max_tokens: int = 512,
+        temperature: float = 0.0,
+        max_retries: int | None = None,
+        retry_backoff_base: float | None = None,
+        max_json_attempts: int = 2,
+    ) -> dict:
+        """OpenAI'nin function-calling ozelligiyle AnthropicClient.generate_structured
+        ile AYNI sozlesmeyi (semaya uyan bir dict) saglar -- `tool_choice` ile
+        model SADECE `tool_name` fonksiyonunu cagirmaya zorlanir. Donen
+        `function.arguments` bir JSON STRING'dir (Anthropic'in aksine); model
+        function-calling semasina uydugu icin bu `json.loads` cagrisi
+        llm_json_utils'daki "bozuksa tekrar dene" dongusune kiyasla cok daha
+        guvenilirdir (semantik hata degil, sadece format ayristirma)."""
+        max_retries = self.DEFAULT_MAX_RETRIES if max_retries is None else max_retries
+        retry_backoff_base = self.DEFAULT_RETRY_BACKOFF_BASE if retry_backoff_base is None else retry_backoff_base
+        total_attempts = max_retries + 1
+
+        tools = [{
+            "type": "function",
+            "function": {"name": tool_name, "description": tool_description, "parameters": schema},
+        }]
+
+        last_exc: Exception | None = None
+        for attempt in range(total_attempts):
+            t0 = time.time()
+            logger.info(
+                "generate_structured basladi: provider=OpenAIClient model=%s tool=%s deneme=%d/%d",
+                self.model_name, tool_name, attempt + 1, total_attempts,
+            )
+            try:
+                response = self._client.chat.completions.create(
+                    model=self.model_name,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_message},
+                    ],
+                    tools=tools,
+                    tool_choice={"type": "function", "function": {"name": tool_name}},
+                )
+            except Exception as exc:
+                last_exc = exc
+                logger.exception(
+                    "generate_structured basarisiz (deneme %d/%d): provider=OpenAIClient model=%s sure=%.2fsn",
+                    attempt + 1, total_attempts, self.model_name, time.time() - t0,
+                )
+                if attempt < max_retries:
+                    time.sleep(retry_backoff_base * (2 ** attempt))
+                    continue
+                raise RuntimeError(
+                    f"generate_structured {total_attempts} denemeden sonra basarisiz oldu (tool={tool_name})."
+                ) from last_exc
+
+            duration = time.time() - t0
+            usage_obj = getattr(response, "usage", None)
+            usage = (
+                {"input_tokens": getattr(usage_obj, "prompt_tokens", None), "output_tokens": getattr(usage_obj, "completion_tokens", None)}
+                if usage_obj is not None else None
+            )
+            cost_usd = _estimate_cost_usd(self.model_name, *(
+                (usage.get("input_tokens"), usage.get("output_tokens")) if usage else (None, None)
+            ))
+            _append_usage_log("OpenAIClient", self.model_name, usage, cost_usd, duration)
+
+            tool_calls = getattr(response.choices[0].message, "tool_calls", None) or []
+            call = next((c for c in tool_calls if c.function.name == tool_name), None)
+            if call is None:
+                logger.warning(
+                    "generate_structured: model beklenen fonksiyon cagrisini dondurmedi (deneme %d/%d, tool=%s).",
+                    attempt + 1, total_attempts, tool_name,
+                )
+                if attempt < max_retries:
+                    time.sleep(retry_backoff_base * (2 ** attempt))
+                    continue
+                raise RuntimeError(
+                    f"generate_structured: model '{tool_name}' fonksiyonunu hicbir denemede cagirmadi."
+                )
+
+            try:
+                parsed = json.loads(call.function.arguments)
+            except json.JSONDecodeError as exc:
+                logger.warning(
+                    "generate_structured: fonksiyon argumanlari gecerli JSON degil (deneme %d/%d): %s",
+                    attempt + 1, total_attempts, exc,
+                )
+                if attempt < max_retries:
+                    time.sleep(retry_backoff_base * (2 ** attempt))
+                    continue
+                raise
+
+            logger.info(
+                "generate_structured tamamlandi: provider=OpenAIClient model=%s tool=%s sure=%.2fsn",
+                self.model_name, tool_name, duration,
+            )
+            return parsed
+
+        raise AssertionError("generate_structured: erisilmemesi gereken kod yolu")  # pragma: no cover
 
 
 _local_model_cache: dict[str, tuple] = {}
@@ -510,4 +757,9 @@ def get_llm_client(llm_settings: dict | None = None) -> LLMClient:
         "get_llm_client: active_mode=%s provider=%s model_name=%s -> %s",
         active_mode, provider, model_name, client_cls.__name__,
     )
-    return client_cls(model_name)
+    # mypy, _PROVIDER_REGISTRY: dict[str, type[LLMClient]] uzerinden gelen
+    # client_cls'i soyut LLMClient.__init__ imzasiyla (parametresiz) kontrol
+    # ediyor -- ama gercek deger her zaman AnthropicClient/OpenAIClient/
+    # LocalHFClient gibi kendi __init__(self, model_name)'i olan somut bir
+    # alt siniftir. Calisma zamaninda hicbir sorun yok.
+    return client_cls(model_name)  # type: ignore[call-arg]
