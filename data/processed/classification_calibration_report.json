@@ -58,5 +58,90 @@
     ],
     "gerekce": "Metin, resmi bir dille 'gereğinin rica edilmesi' ifadesiyle dilekçe formatına benzemekte ancak içerik detayı belirsizdir.",
     "human_review": true
+  },
+  "talep_formu_ornegi": {
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.95,
+    "etiketler": [
+      "donanım talebi",
+      "dizüstü bilgisayar",
+      "bilgi işlem",
+      "onay bekliyor"
+    ],
+    "gerekce": "Belge, çalışan tarafından donanım talebini içeren ve yönetici onayı bekleyen bir talep formu niteliğindedir.",
+    "human_review": false
+  },
+  "dilekce_ornegi": {
+    "siniflar": [
+      "dilekçe"
+    ],
+    "guven": 0.95,
+    "etiketler": [
+      "yıllık izin talebi",
+      "insan kaynakları",
+      "izin dilekçesi",
+      "görev devri"
+    ],
+    "gerekce": "Belge, insan kaynaklari mudurlugune izin talebini bildiren resmi bir dilekce formatindadir.",
+    "human_review": false
+  },
+  "diger_ornegi": {
+    "siniflar": [
+      "diğer"
+    ],
+    "guven": 0.9,
+    "etiketler": [
+      "toplanti notu",
+      "ekip senkronizasyonu",
+      "sprint planlama",
+      "gundem"
+    ],
+    "gerekce": "Belge bir toplanti tutanagi olup fatura, sozlesme, dilekce veya talep formu ozelligi tasimamaktadir.",
+    "human_review": false
+  },
+  "eksik_taranmis_ornek": {
+    "siniflar": [
+      "talep formu"
+    ],
+    "guven": 0.3,
+    "etiketler": [
+      "taranmis belge",
+      "eksik metin",
+      "talep",
+      "miktar bilgisi",
+      "okunamayan tarih"
+    ],
+    "gerekce": "Metinde 'talep' ve 'miktar' ifadeleri gecmesine ragmen belgenin buyuk kismi okunamadigi icin dusuk guvenle talep formu olarak siniflandirildi.",
+    "human_review": true
+  },
+  "coklu_dilekce_talep": {
+    "siniflar": [
+      "dilekçe",
+      "talep formu"
+    ],
+    "guven": 0.85,
+    "etiketler": [
+      "izin talebi",
+      "görevlendirme",
+      "vekalet",
+      "ekipman talebi"
+    ],
+    "gerekce": "Belge hem izin onayı için resmi bir dilekçe niteliği taşımakta hem de ekipman ve vekalet talebini içeren bir talep formu formatındadır.",
+    "human_review": false
+  },
+  "kisa_belirsiz_ornek_2": {
+    "siniflar": [
+      "diğer"
+    ],
+    "guven": 0.4,
+    "etiketler": [
+      "ek bilgi",
+      "iletişim talebi",
+      "kısa not"
+    ],
+    "gerekce": "Belge net bir fatura, sözleşme, dilekçe veya talep formu unsuru içermeyip genel bir iletişim notu niteliğinde.",
+    "human_review": true
   }
 }
