@@ -1,7 +1,7 @@
 # DocuRAG
 
 ![tests](https://github.com/dila0704/DocuRAG/actions/workflows/tests.yml/badge.svg)
-![coverage](https://img.shields.io/badge/coverage-90%25-2E7D5B) ![tests](https://img.shields.io/badge/tests-236%20passing-2E7D5B) ![ruff](https://img.shields.io/badge/lint-ruff-2E7D5B) ![mypy](https://img.shields.io/badge/types-mypy-2E7D5B)
+![coverage](https://img.shields.io/badge/coverage-90%25-2E7D5B) ![tests](https://img.shields.io/badge/tests-252%20passing-2E7D5B) ![ruff](https://img.shields.io/badge/lint-ruff-2E7D5B) ![mypy](https://img.shields.io/badge/types-mypy-2E7D5B)
 
 Belge görsellerinden (fatura, sözleşme, dilekçe vb.) çıkarılan metinler üzerinde hibrit (BM25+dense) semantik arama, LLM tabanlı sınıflandırma/alan çıkarımı ve kaynak gösterimli (grounded) cevaplama yapabilen, çoklu dil modeli (cloud/local) desteğine uygun esnek bir RAG (Retrieval-Augmented Generation) pipeline'ı.
 
@@ -178,4 +178,4 @@ ruff check src app
 mypy src --config-file mypy.ini
 ```
 
-Güncel durum: **236 test**, `src/` üzerinde **%90 coverage** (hiçbiri gerçek API/ağ çağrısı yapmaz, hepsi sahte istemcilerle çalışır); `ruff`/`mypy` repo genelinde temiz (bkz. `.github/workflows/tests.yml`).
+Güncel durum: **252 test**, `src/` üzerinde **%90 coverage** (hiçbiri gerçek API/ağ çağrısı yapmaz, hepsi sahte istemcilerle çalışır); `ruff`/`mypy` repo genelinde temiz (bkz. `.github/workflows/tests.yml`).
